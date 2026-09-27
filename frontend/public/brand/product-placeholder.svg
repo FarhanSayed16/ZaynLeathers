@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="Product">
+  <rect width="400" height="400" fill="#E8DED2"/>
+  <rect x="120" y="130" width="160" height="140" rx="8" fill="#C4A574" opacity="0.55"/>
+  <text x="200" y="310" text-anchor="middle" fill="#6B3A2A" font-family="Georgia, serif" font-size="22">Zayn Leathers</text>
+</svg>

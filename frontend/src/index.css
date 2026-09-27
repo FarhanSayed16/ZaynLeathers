@@ -1,0 +1,214 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Afhiya defaults — overwritten at boot by applyBrandToDocument() */
+:root {
+  --tz-pink: 107 58 42;
+  --tz-pink-soft: 232 222 210;
+  --tz-blue: 196 165 116;
+  --tz-blue-soft: 232 222 210;
+  --tz-navy: 28 25 23;
+  --tz-cream: 243 238 230;
+  --tz-cherry: 180 83 83;
+  --brand-accent-rgb: 44 24 16;
+  --brand-surface-rgb: 255 251 247;
+  --brand-primary: #6B3A2A;
+  --brand-secondary: #C4A574;
+  --brand-accent: #2C1810;
+  --brand-muted: #1C1917;
+  --brand-bg: #F3EEE6;
+  --brand-surface: #FFFBF7;
+  --brand-border: #D9D0C4;
+  --brand-font-body: Outfit, system-ui, sans-serif;
+  --brand-font-heading: "Cormorant Garamond", Georgia, serif;
+}
+
+* {
+  font-family: var(--brand-font-body);
+}
+
+h1, h2, h3, h4, h5, h6, .font-display {
+  font-family: var(--brand-font-heading);
+}
+
+body {
+  color: rgb(var(--tz-navy));
+  margin: 0;
+  padding: 0;
+  background-color: rgb(var(--tz-cream));
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+::selection {
+  background-color: rgb(var(--tz-pink) / 0.28);
+  color: rgb(var(--tz-navy));
+}
+
+/* Quiet premium scrollbar (desktop) */
+@media (min-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+    display: block;
+  }
+  ::-webkit-scrollbar-track {
+    background: rgb(var(--tz-cream));
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--tz-pink));
+    border-radius: 999px;
+    border: 2px solid rgb(var(--tz-cream));
+  }
+}
+
+@media (max-width: 767px) {
+  ::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Subtle parchment grain — replaces candy gingham */
+.bg-gingham {
+  background-color: rgb(var(--tz-cream));
+  background-image:
+    radial-gradient(rgb(var(--tz-navy) / 0.03) 0.6px, transparent 0.6px);
+  background-size: 10px 10px;
+}
+
+@keyframes hero-zoom {
+  0% { transform: scale(1.05); }
+  100% { transform: scale(1.12); }
+}
+
+.animate-hero-zoom {
+  animation: hero-zoom 18s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-hero-zoom {
+    animation: none;
+  }
+}
+
+.btn-leather {
+  @apply inline-flex items-center justify-center gap-2 bg-tz-pink text-white font-semibold text-sm px-7 py-3 hover:bg-tz-navy transition-colors;
+}
+
+a.active hr {
+  display: block;
+}
+
+.input-style {
+  @apply w-full px-4 py-3 border-2 border-gray-100 bg-gray-50 rounded-2xl outline-none transition-all duration-300;
+}
+.input-style:focus {
+  @apply border-tz-pink bg-white shadow-soft;
+}
+
+.input {
+  @apply w-full border-2 border-gray-100 bg-gray-50 rounded-2xl px-4 py-3 outline-none transition-all duration-300 focus:border-tz-pink focus:bg-white focus:shadow-soft;
+}
+
+.marquee {
+  animation: marquee 22s linear infinite;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: inline-flex;
+  animation: marquee 22s linear infinite;
+}
+
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+@media (max-width:640px) {
+  a.active {
+    background-color: rgb(var(--tz-navy));
+    color: white;
+  }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite linear;
+  background: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
+  background-size: 1000px 100%;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}

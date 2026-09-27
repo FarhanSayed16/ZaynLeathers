@@ -1,0 +1,42 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon",
+    "seed:categories": "node seeds/seedAfiyaCategories.js",
+    "seed:categories:wipe": "node seeds/seedAfiyaCategories.js --wipe",
+    "seed:users": "node seeds/seedTestUsers.js",
+    "seed:coupon": "node seeds/seedTestCoupon.js",
+    "seed:products": "node seeds/importOrganizedImages.js",
+    "seed:products:wipe": "node seeds/importOrganizedImages.js --wipe",
+    "update:tiles": "node updateTiles.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": " ",
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cloudinary": "^2.5.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^8.5.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^7.1.0",
+    "mongoose": "^9.2.1",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^7.0.13",
+    "pdfkit": "^0.19.1",
+    "razorpay": "^2.9.6",
+    "resend": "^6.20.0",
+    "sharp": "^0.35.3",
+    "streamifier": "^0.1.1",
+    "validator": "^13.12.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}

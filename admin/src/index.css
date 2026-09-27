@@ -1,0 +1,198 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Afhiya admin defaults — overwritten by applyBrandToDocument() */
+:root {
+  --tz-pink: 107 58 42;
+  --tz-pink-soft: 232 222 210;
+  --tz-blue: 196 165 116;
+  --tz-blue-soft: 232 222 210;
+  --tz-navy: 28 25 23;
+  --tz-cream: 243 238 230;
+  --tz-cherry: 180 83 83;
+  --brand-font-body: Outfit, system-ui, sans-serif;
+  --brand-font-heading: "Cormorant Garamond", Georgia, serif;
+}
+
+* {
+  font-family: var(--brand-font-body);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bg-gingham {
+  background-color: rgb(var(--tz-cream));
+  background-image:
+    radial-gradient(rgb(var(--tz-navy) / 0.03) 0.6px, transparent 0.6px);
+  background-size: 10px 10px;
+}
+
+body {
+  background-color: rgb(var(--tz-cream));
+  color: rgb(var(--tz-navy));
+}
+
+@media (min-width: 480px) {
+  .xs\:inline {
+    display: inline;
+  }
+  .xs\:hidden {
+    display: none;
+  }
+}
+
+.overflow-y-auto {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--tz-pink-soft)) rgb(var(--tz-cream));
+}
+
+.overflow-y-auto::-webkit-scrollbar {
+  width: 4px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: rgb(var(--tz-cream));
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background-color: rgb(var(--tz-pink) / 0.45);
+  border-radius: 20px;
+}
+
+.fixed {
+  position: fixed;
+}
+
+.active {
+  background-color: rgb(var(--tz-pink-soft));
+  border-color: rgb(var(--tz-pink) / 0.45);
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.2s ease-out;
+}
+
+@keyframes scale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scale {
+  animation: scale 0.2s ease-out;
+}
+
+@keyframes slideRight {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-right {
+  animation: slideRight 0.3s ease-out;
+}
+
+.success-popup {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 16px 24px;
+  min-width: 260px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  animation: successEnter 0.35s ease-out forwards;
+}
+
+.success-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #22c55e;
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.success-text {
+  font-size: 15px;
+  font-weight: 600;
+  color: #166534;
+}
+
+@keyframes successEnter {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translateY(10px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.02) translateY(0);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+select, input, textarea {
+  border: 1px solid rgb(var(--tz-navy) / 0.14);
+  outline-color: rgb(var(--tz-pink));
+  border-radius: 0.75rem;
+}
+
+select:focus, input:focus, textarea:focus {
+  box-shadow: 0 0 0 3px rgb(var(--tz-pink) / 0.18);
+}
+
+@layer components {
+  .admin-card {
+    @apply bg-white rounded-2xl border border-tz-pink-soft shadow-sm;
+  }
+  .admin-chip {
+    @apply px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition;
+  }
+}
+
+@media print {
+  .no-print,
+  header,
+  aside,
+  .Toastify {
+    display: none !important;
+  }
+  html,
+  body,
+  #root,
+  .h-screen {
+    height: auto !important;
+    overflow: visible !important;
+    background: white !important;
+  }
+  main {
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+}

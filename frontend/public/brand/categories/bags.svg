@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" role="img" aria-label="Bags">
+  <defs>
+    <linearGradient id="bags-bg" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#6B3A2A"/>
+      <stop offset="100%" stop-color="#1C1917"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="500" fill="url(#bags-bg)"/>
+  <text x="200" y="268" text-anchor="middle" fill="#E8DED2" font-family="Georgia, 'Times New Roman', serif" font-size="52" font-weight="600">Bags</text>
+</svg>
