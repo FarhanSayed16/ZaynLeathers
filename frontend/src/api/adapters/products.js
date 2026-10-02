@@ -2,41 +2,42 @@
  * ============================================================
  * Product Adapter — WooCommerce ↔ Frontend
  * ============================================================
- * Maps WooCommerce product data to the shape your existing
- * React components expect (same as your Mongo/Express backend).
- * ============================================================
  */
 
 import { wcUrl, request } from "../wooClient.js";
+import {
+  resolveDepartmentFromCategories,
+  tagListIncludes,
+} from "../../utils/categoryMap.js";
+
+const BESTSELLER_TAGS = ["bestseller", "best-seller", "best-sellers", "best-selling"];
+const NEW_ARRIVAL_TAGS = ["new-arrival", "new-arrivals", "new", "newest"];
 
 /**
- * Map a single WooCommerce product object → your frontend product shape.
- *
- * Your current frontend expects:
- * { _id, name, description, price, image, category, subCategory,
- *   sizes, bestseller, date, images, ... }
+ * Map a single WooCommerce product object → frontend product shape.
  */
 function mapProduct(wc) {
-  // Extract images
   const images = (wc.images || []).map((img) => img.src);
 
-  // Extract categories
   const cats = wc.categories || [];
   const category = cats[0]?.name || "";
   const subCategory = cats[1]?.name || "";
+  const categorySlugs = cats.map((c) => c.slug).filter(Boolean);
+  // Prefer leaf category for filters; department is top-level
+  const categorySlug =
+    categorySlugs.find((s) => !["men", "women", "kids", "bags", "accessories"].includes(s)) ||
+    categorySlugs[1] ||
+    categorySlugs[0] ||
+    "";
 
-  // Extract sizes from WooCommerce attributes (assumes an attribute named "Size")
   const sizeAttr = (wc.attributes || []).find(
     (a) => a.name.toLowerCase() === "size"
   );
   const sizes = sizeAttr?.options || ["Free Size"];
 
-  // Price — WooCommerce stores sale_price and regular_price as strings
   const price = Number(wc.sale_price || wc.price || wc.regular_price || 0);
   const originalPrice = Number(wc.regular_price || price);
 
-  // Size-specific pricing from metadata (custom field `_size_prices`)
-  // e.g. { "S": 2999, "M": 3499, "L": 3999 }
   const sizePricesMeta = (wc.meta_data || []).find(
     (m) => m.key === "_size_prices"
   );
@@ -52,7 +53,6 @@ function mapProduct(wc) {
     }
   }
 
-  // Stock / variant matrix from metadata
   const matrixMeta = (wc.meta_data || []).find((m) => m.key === "_variant_matrix");
   let variantMatrix = null;
   if (matrixMeta?.value) {
@@ -66,6 +66,14 @@ function mapProduct(wc) {
     }
   }
 
+  const tagSlugs = (wc.tags || []).map((t) =>
+    String(t.slug || t.name || "")
+      .toLowerCase()
+      .trim()
+  );
+  const hasBestsellerTag = tagListIncludes(tagSlugs, BESTSELLER_TAGS);
+  const hasNewTag = tagListIncludes(tagSlugs, NEW_ARRIVAL_TAGS);
+
   return {
     _id: String(wc.id),
     name: wc.name || "",
@@ -74,33 +82,34 @@ function mapProduct(wc) {
     price,
     originalPrice,
     onSale: wc.on_sale || false,
-    image: images,                     // array (your frontend expects `image` as array)
+    image: images,
     category,
     subCategory,
-    department: cats[0]?.slug || "",
+    categorySlug,
+    categorySlugs,
+    department: resolveDepartmentFromCategories(cats),
     sizes,
     sizePrices,
     variantMatrix,
-    bestseller: wc.featured || false,
+    // Featured in Woo admin → bestsellers; tag "bestseller" also counts
+    bestseller: Boolean(wc.featured) || hasBestsellerTag,
+    featured: Boolean(wc.featured),
+    // New arrivals: Woo tags (not the same as featured)
+    newArrival: hasNewTag,
     date: wc.date_created || new Date().toISOString(),
     sku: wc.sku || "",
     stock: wc.stock_quantity,
     inStock: wc.in_stock !== false,
     slug: wc.slug || "",
-    tags: (wc.tags || []).map((t) => t.name),
+    tags: tagSlugs,
     averageRating: Number(wc.average_rating || 0),
     ratingCount: Number(wc.rating_count || 0),
     weight: wc.weight || "",
     dimensions: wc.dimensions || {},
-    // Keep raw WC data accessible if needed
     _wc: wc,
   };
 }
 
-/**
- * Fetch all products from WooCommerce.
- * WooCommerce paginates (default 10 per page), so we fetch in chunks.
- */
 export async function fetchProducts({ perPage = 100, page = 1 } = {}) {
   const url = wcUrl("products", {
     per_page: perPage,
@@ -113,9 +122,6 @@ export async function fetchProducts({ perPage = 100, page = 1 } = {}) {
   return products.map(mapProduct);
 }
 
-/**
- * Fetch ALL products (handles pagination automatically).
- */
 export async function fetchAllProducts() {
   const all = [];
   let page = 1;
@@ -131,20 +137,13 @@ export async function fetchAllProducts() {
   return all;
 }
 
-/**
- * Fetch a single product by ID.
- */
 export async function fetchProduct(productId) {
   const url = wcUrl(`products/${productId}`);
   const wc = await request(url);
   return mapProduct(wc);
 }
 
-/**
- * Fetch products by category slug.
- */
 export async function fetchProductsByCategory(categorySlug) {
-  // First, find the category ID from slug
   const catUrl = wcUrl("products/categories", { slug: categorySlug });
   const cats = await request(catUrl);
   if (!cats.length) return [];
@@ -159,9 +158,6 @@ export async function fetchProductsByCategory(categorySlug) {
   return products.map(mapProduct);
 }
 
-/**
- * Search products.
- */
 export async function searchProducts(query) {
   const url = wcUrl("products", {
     search: query,

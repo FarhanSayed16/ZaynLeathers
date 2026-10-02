@@ -2,32 +2,32 @@
  * ============================================================
  * Categories Adapter — WooCommerce ↔ Frontend
  * ============================================================
- * Maps WooCommerce product categories to the flat list and
- * tree structure your frontend expects.
- * ============================================================
  */
 
 import { wcUrl, request } from "../wooClient.js";
+import { canonicalizeSlug, departmentCanonicals } from "../../utils/categoryMap.js";
 
-/**
- * Map a WooCommerce category → frontend category shape.
- */
 function mapCategory(wc) {
+  const slug = wc.slug || "";
+  const isTopLevel = !wc.parent;
+  const canonical = canonicalizeSlug(slug);
+  const isDepartment =
+    isTopLevel || departmentCanonicals().includes(canonical);
+
   return {
     _id: String(wc.id),
     name: wc.name || "",
-    slug: wc.slug || "",
+    slug,
     description: wc.description || "",
     image: wc.image?.src || "",
     parent: wc.parent ? String(wc.parent) : null,
     count: wc.count || 0,
     menuOrder: wc.menu_order || 0,
+    // Used by Navbar / Shop to treat top-level Woo cats as departments
+    type: isDepartment && isTopLevel ? "department" : "category",
   };
 }
 
-/**
- * Fetch all categories from WooCommerce.
- */
 export async function fetchCategories() {
   const url = wcUrl("products/categories", {
     per_page: 100,
@@ -40,16 +40,9 @@ export async function fetchCategories() {
   return cats.map(mapCategory);
 }
 
-/**
- * Build a tree structure from flat categories.
- * Returns { categories: [...flat], tree: [...nested] }.
- *
- * Tree shape matches what your frontend ShopContext expects.
- */
 export async function fetchCategoryTree() {
   const flat = await fetchCategories();
 
-  // Build tree
   const byId = {};
   flat.forEach((cat) => {
     byId[cat._id] = { ...cat, children: [] };
@@ -64,7 +57,6 @@ export async function fetchCategoryTree() {
     }
   });
 
-  // Sort by menuOrder
   tree.sort((a, b) => a.menuOrder - b.menuOrder);
   tree.forEach((node) =>
     node.children.sort((a, b) => a.menuOrder - b.menuOrder)

@@ -4,6 +4,9 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import SearchBar from "./components/SearchBar";
 import PromoStrip from "./components/PromoStrip";
+import BackToTop from "./components/BackToTop";
+import FloatingCart from "./components/FloatingCart";
+import WelcomePopup from "./components/WelcomePopup";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import AOS from "aos";
@@ -25,6 +28,7 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Register = lazy(() => import("./pages/Register"));
 const Account = lazy(() => import("./pages/Account"));
 const Policy = lazy(() => import("./pages/Policy"));
+const CustomJackets = lazy(() => import("./pages/CustomJackets"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const ScrollToTop = () => {
@@ -71,6 +75,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/shop" element={<Shop />} />
+            <Route path="/custom-jackets" element={<CustomJackets />} />
             <Route path="/totes" element={<Navigate to="/shop?department=bags" replace />} />
             <Route path="/accessories" element={<Navigate to="/shop?department=accessories" replace />} />
             <Route path="/mens" element={<Navigate to="/shop?department=men" replace />} />
@@ -100,6 +105,9 @@ const App = () => {
       </main>
 
       <Footer />
+      <BackToTop />
+      <FloatingCart />
+      <WelcomePopup />
     </div>
   );
 };

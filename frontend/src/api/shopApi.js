@@ -389,6 +389,145 @@ export async function submitContact(formData) {
   return nodePost("/api/contact", formData);
 }
 
+/**
+ * Welcome popup / newsletter signup.
+ * Woo: zayn/v1/newsletter · Node: /api/newsletter (or contact fallback).
+ */
+export async function subscribeNewsletter({ email, gender }) {
+  if (isWooMode) {
+    const { wpUrl, request } = await import("./wooClient.js");
+    return request(wpUrl("zayn/v1/newsletter"), {
+      method: "POST",
+      body: JSON.stringify({ email, gender }),
+    });
+  }
+  try {
+    return await nodePost("/api/newsletter", { email, gender });
+  } catch {
+    // Fallback if Node route not present yet
+    return nodePost("/api/contact", {
+      name: "Newsletter",
+      email,
+      phone: "",
+      message: `Welcome popup signup · gender: ${gender || "n/a"}`,
+    });
+  }
+}
+
+/**
+ * Custom leather jacket inquiry (Phase E).
+ * Uses multipart when a file is attached.
+ */
+export async function submitCustomJacket(payload) {
+  const {
+    name,
+    email,
+    phone,
+    company,
+    quantity,
+    gender,
+    country,
+    description,
+    styles,
+    file,
+  } = payload;
+
+  if (isWooMode) {
+    const { wpUrl, request } = await import("./wooClient.js");
+    const endpoint = wpUrl("zayn/v1/custom-jacket");
+
+    if (file) {
+      const fd = new FormData();
+      fd.append("name", name);
+      fd.append("email", email);
+      fd.append("phone", phone || "");
+      fd.append("company", company || "");
+      fd.append("quantity", String(quantity || 1));
+      fd.append("gender", gender || "");
+      fd.append("country", country || "");
+      fd.append("description", description || "");
+      fd.append("styles", JSON.stringify(styles || []));
+      fd.append("file", file);
+
+      const res = await fetch(endpoint, { method: "POST", body: fd });
+      if (!res.ok) {
+        let msg = `HTTP ${res.status}`;
+        try {
+          const body = await res.json();
+          msg = body.message || body.error || msg;
+        } catch {
+          /* ignore */
+        }
+        throw new Error(msg);
+      }
+      return res.json();
+    }
+
+    return request(endpoint, {
+      method: "POST",
+      body: JSON.stringify({
+        name,
+        email,
+        phone,
+        company,
+        quantity,
+        gender,
+        country,
+        description,
+        styles,
+      }),
+    });
+  }
+
+  // Node fallback — prefer dedicated route, else contact
+  try {
+    if (file) {
+      const fd = new FormData();
+      Object.entries({
+        name,
+        email,
+        phone,
+        company,
+        quantity,
+        gender,
+        country,
+        description,
+      }).forEach(([k, v]) => fd.append(k, v == null ? "" : String(v)));
+      fd.append("styles", JSON.stringify(styles || []));
+      fd.append("file", file);
+      const res = await axios.post(`${nodeBase()}/api/custom-jacket`, fd);
+      return res.data;
+    }
+    return await nodePost("/api/custom-jacket", {
+      name,
+      email,
+      phone,
+      company,
+      quantity,
+      gender,
+      country,
+      description,
+      styles,
+    });
+  } catch {
+    return nodePost("/api/contact", {
+      name,
+      email,
+      phone,
+      message: [
+        `Custom jacket request`,
+        `Company: ${company || "—"}`,
+        `Qty: ${quantity}`,
+        `Gender: ${gender}`,
+        `Country: ${country}`,
+        `Styles: ${(styles || []).join(", ") || "—"}`,
+        "",
+        description,
+      ].join("\n"),
+    });
+  }
+}
+
 export async function getHeroBanners() {
   if (isWooMode) {
     const banners = await wooSettings.fetchHeroBanners();

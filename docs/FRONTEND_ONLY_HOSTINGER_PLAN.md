@@ -86,34 +86,36 @@ Accept Hostinger invite → confirm:
 ### Phase 0 — Plan & mode switch (this doc + code start)
 
 - [x] Write this plan
-- [ ] `VITE_BACKEND_MODE=woocommerce` actually switches the storefront
-- [ ] Unified `shopApi` facade used by `ShopContext`
+- [x] `VITE_BACKEND_MODE=woocommerce` actually switches the storefront
+- [x] Unified `shopApi` facade used by `ShopContext`
 
 ### Phase 1 — Core catalogue & session (implement now)
 
-- [ ] Products list / single product via Woo adapters
-- [ ] Categories tree via Woo
-- [ ] Site settings + exchange rates via `zayn/v1` (with fallbacks)
-- [ ] Login / register / profile via JWT + WC customers
-- [ ] Cart: guest localStorage + Store API when logged in (or Store API Cart-Token for guests)
+- [x] Products list / single product via Woo adapters
+- [x] Categories tree via Woo
+- [x] Site settings + exchange rates via `zayn/v1` (with fallbacks)
+- [x] Login / register / profile via JWT + WC customers
+- [x] Cart: guest localStorage + Store API when logged in (or Store API Cart-Token for guests)
 
 ### Phase 2 — Checkout & orders
 
-- [ ] COD place order via Woo orders API / Store checkout
-- [ ] Razorpay create + verify via `zayn/v1/razorpay/*`
-- [ ] Orders list + order detail for customer
-- [ ] Coupons via Store API
+- [x] COD place order via Woo orders API / Store checkout
+- [x] Razorpay create + verify via `zayn/v1/razorpay/*`
+- [x] Orders list + order detail for customer
+- [x] Coupons via Store API
 
 ### Phase 3 — Account extras
 
-- [ ] Wishlist via `zayn/v1/wishlist` (or YITH)
-- [ ] Password forgot/reset via plugin
-- [ ] Contact form → WP or email plugin
-- [ ] Soft-disable Node-only UI (recommendations, invoice PDFs, OTP screens)
+- [x] Wishlist via `zayn/v1/wishlist` (or YITH)
+- [x] Password forgot/reset via plugin
+- [x] Contact form → WP or email plugin
+- [x] Soft-disable Node-only UI (recommendations, invoice PDFs, OTP screens)
 
 ### Phase 4 — Go-live
 
-- [ ] Production env on Vercel
+- [x] Catalogue mapping hardened (slugs, tags, home rails) — see `docs/PHASE_G_GO_LIVE.md`
+- [x] Plugin: promo strip, home IDs, CORS for Vercel
+- [ ] Production env on Vercel (needs client WC URL + keys)
 - [ ] Install/activate plugins on Hostinger
 - [ ] CORS + JWT secret in `wp-config.php`
 - [ ] Smoke test: browse → cart → COD → Razorpay → account
