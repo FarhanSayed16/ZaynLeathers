@@ -44,7 +44,7 @@ const brand = {
     },
   },
 
-  /* ---------- contact (same business as Afiya rebrand — update domain when Zayn site goes live) ---------- */
+  /* ---------- contact ---------- */
   contact: {
     email: "afiyaleather8@gmail.com",
     phone: "+91 97686 57387",
@@ -52,7 +52,7 @@ const brand = {
     whatsapp: "+91 97686 57387",
     whatsappUrl: "https://wa.me/919768657387",
     website: "Zayn Leathers",
-    websiteUrl: "http://localhost:5173",
+    websiteUrl: "https://zaynleather.com",
     address:
       "B.30 Ground Floor Janta Chawl K.K. Krishna Meman Marg, 90 Feet Road, Dharavi, Mumbai, Maharashtra 400017",
     hours: "Monday - Saturday: 10AM - 7PM",
@@ -62,8 +62,8 @@ const brand = {
 
   /* ---------- about page copy ---------- */
   about: {
-    heroTitle: "Crafted in leather.",
-    heroHighlight: "Made to last.",
+    heroTitle: "NEW",
+    heroHighlight: "Arrival",
     heroSubtitle:
       "Zayn Leathers designs jackets, bags, and leather essentials with lasting material quality and a clean modern cut.",
     storyTitle: "Our Story",
@@ -91,21 +91,21 @@ const brand = {
         title: "Leather jackets",
         subtitle: "Built for the road and the city",
         ctaLabel: "Shop jackets",
-        ctaLink: "/shop",
+        ctaLink: "/shop?department=men",
       },
       {
         image: "/brand/heroes/hero-2.jpg",
         title: "For her",
         subtitle: "Biker silhouettes in real leather",
         ctaLabel: "Shop women",
-        ctaLink: "/shop",
+        ctaLink: "/shop?department=women",
       },
       {
         image: "/brand/heroes/hero-3.webp",
         title: "Leather bags",
         subtitle: "Handbags, totes, and everyday carries",
         ctaLabel: "Shop bags",
-        ctaLink: "/shop",
+        ctaLink: "/shop?department=bags",
       },
       {
         image: "/brand/heroes/hero-4.webp",
@@ -152,6 +152,21 @@ const brand = {
     instagram: "",
     linkedin: "",
     whatsapp: "",
+  },
+
+  /* ---------- welcome / entry popup (Phase D) ---------- */
+  popup: {
+    enabled: true,
+    delayMs: 1800,
+    eyebrow: "Welcome gift",
+    headline: "₹500 off your first leather piece",
+    subcopy:
+      "Enter your email for an exclusive code. Offer valid while supplies last.",
+    ctaPrimary: "Unlock your offer",
+    ctaSecondary: "when you sign up for emails",
+    successMessage: "We'll send your welcome offer shortly. Happy shopping.",
+    // Prefer a lifestyle shot; falls back to hero / placeholder
+    image: "/brand/heroes/hero-3.webp",
   },
 
   /* ---------- commerce display ---------- */
@@ -206,14 +221,133 @@ const brand = {
       path: "/shop?department=bags",
     },
     nav: [
-      { name: "Home", label: "Home", path: "/" },
-      { name: "Shop", label: "Shop", path: "/shop" },
-      { name: "Men", label: "Men", path: "/shop?department=men" },
-      { name: "Women", label: "Women", path: "/shop?department=women" },
-      { name: "Bags", label: "Bags", path: "/shop?department=bags" },
-      { name: "About", label: "About", path: "/about" },
-      { name: "Contact", label: "Contact", path: "/contact" },
+      {
+        name: "Men",
+        label: "Men",
+        path: "/shop?department=men",
+        mega: "men",
+      },
+      {
+        name: "New Arrivals",
+        label: "New Arrivals",
+        path: "/shop?sort=newest",
+      },
+      {
+        name: "Women",
+        label: "Women",
+        path: "/shop?department=women",
+        mega: "women",
+      },
+      {
+        name: "Kids",
+        label: "Kids",
+        path: "/shop?department=kids",
+      },
+      {
+        name: "Movie Jackets",
+        label: "Movie Jackets",
+        path: "/shop?category=movie-jackets",
+      },
+      {
+        name: "Custom Leather Jackets",
+        label: "Custom Leather Jackets",
+        path: "/custom-jackets",
+        highlight: true,
+      },
+      { name: "Contact", label: "Contact Us", path: "/contact" },
     ],
+    /* Mega-menu column fallbacks when Woo category tree is thin */
+    megaMenu: {
+      men: [
+        {
+          title: "Jackets",
+          links: [
+            { label: "Leather Jackets", path: "/shop?department=men&category=leather-jackets" },
+            { label: "Bomber Jackets", path: "/shop?department=men&category=bomber-jackets" },
+            { label: "Biker Jackets", path: "/shop?department=men&category=biker-jackets" },
+            { label: "Aviator Jackets", path: "/shop?department=men&category=aviator-jackets" },
+            { label: "Varsity Jackets", path: "/shop?department=men&category=varsity-jackets" },
+            { label: "Suede Jackets", path: "/shop?department=men&category=suede-jackets" },
+            { label: "Shearling Jackets", path: "/shop?department=men&category=shearling-jackets" },
+            { label: "Hooded Jackets", path: "/shop?department=men&category=hooded-jackets" },
+          ],
+        },
+        {
+          title: "Coats & More",
+          links: [
+            { label: "Leather Coats", path: "/shop?department=men&category=leather-coats" },
+            { label: "Waistcoats", path: "/shop?department=men&category=waistcoats" },
+            { label: "Blazers", path: "/shop?department=men&category=blazers" },
+            { label: "Vests & Gilets", path: "/shop?department=men&category=vests" },
+          ],
+        },
+        {
+          title: "By Color",
+          links: [
+            { label: "Black", path: "/shop?department=men&color=black" },
+            { label: "Brown", path: "/shop?department=men&color=brown" },
+            { label: "Tan", path: "/shop?department=men&color=tan" },
+            { label: "Burgundy", path: "/shop?department=men&color=burgundy" },
+          ],
+        },
+        {
+          title: "Accessories",
+          links: [
+            { label: "Bags", path: "/shop?department=bags" },
+            { label: "Belts", path: "/shop?department=accessories&category=belts" },
+            { label: "Wallets", path: "/shop?department=accessories&category=wallets" },
+            { label: "Gloves", path: "/shop?department=accessories&category=gloves" },
+          ],
+        },
+      ],
+      women: [
+        {
+          title: "Jackets",
+          links: [
+            { label: "Leather Jackets", path: "/shop?department=women&category=leather-jackets" },
+            { label: "Biker Jackets", path: "/shop?department=women&category=biker-jackets" },
+            { label: "Bomber Jackets", path: "/shop?department=women&category=bomber-jackets" },
+            { label: "Cropped Jackets", path: "/shop?department=women&category=cropped-jackets" },
+          ],
+        },
+        {
+          title: "Bags",
+          links: [
+            { label: "Handbags", path: "/shop?department=bags&category=handbags" },
+            { label: "Totes", path: "/shop?department=bags&category=totes" },
+            { label: "Sling Bags", path: "/shop?department=bags&category=sling-bags" },
+            { label: "Backpacks", path: "/shop?department=bags&category=backpacks" },
+          ],
+        },
+        {
+          title: "By Color",
+          links: [
+            { label: "Black", path: "/shop?department=women&color=black" },
+            { label: "Brown", path: "/shop?department=women&color=brown" },
+            { label: "Red", path: "/shop?department=women&color=red" },
+            { label: "White", path: "/shop?department=women&color=white" },
+          ],
+        },
+        {
+          title: "Accessories",
+          links: [
+            { label: "Belts", path: "/shop?department=accessories&category=belts" },
+            { label: "Wallets", path: "/shop?department=accessories&category=wallets" },
+            { label: "All Accessories", path: "/shop?department=accessories" },
+          ],
+        },
+      ],
+    },
+    /* Woo slug aliases — map client WC category slugs → brand canonicals */
+    slugAliases: {
+      men: ["men", "mens", "men-s", "mens-jackets"],
+      women: ["women", "womens", "women-s", "womens-jackets"],
+      kids: ["kids", "kid", "children"],
+      bags: ["bags", "bag", "handbags", "totes"],
+      accessories: ["accessories", "accessory"],
+      "movie-jackets": ["movie-jackets", "movie", "celebrity-jackets"],
+    },
+    promoFallback: "Free shipping on orders above ₹2,999 · Handmade leather",
     searchSuggestions: [
       "Leather Jacket",
       "Biker Jacket",

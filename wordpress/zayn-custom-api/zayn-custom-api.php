@@ -23,19 +23,35 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 add_action( 'init', function () {
     $allowed = [
         'http://localhost:5173',
+        'http://127.0.0.1:5173',
         'https://zaynleather.com',
         'https://www.zaynleather.com',
     ];
 
-    $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+    $frontend = rtrim( (string) get_option( 'zayn_frontend_url', '' ), '/' );
+    if ( $frontend ) {
+        $allowed[] = $frontend;
+    }
 
-    if ( in_array( $origin, $allowed, true ) ) {
+    $extra = get_option( 'zayn_cors_origins', '' );
+    if ( is_string( $extra ) && $extra !== '' ) {
+        foreach ( array_filter( array_map( 'trim', explode( ',', $extra ) ) ) as $origin_extra ) {
+            $allowed[] = rtrim( $origin_extra, '/' );
+        }
+    }
+
+    $origin = isset( $_SERVER['HTTP_ORIGIN'] ) ? rtrim( $_SERVER['HTTP_ORIGIN'], '/' ) : '';
+
+    $allow = in_array( $origin, $allowed, true )
+        || (bool) preg_match( '#^https://[a-z0-9-]+\.vercel\.app$#i', $origin );
+
+    if ( $allow && $origin ) {
         header( "Access-Control-Allow-Origin: $origin" );
         header( 'Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS' );
-        header( 'Access-Control-Allow-Headers: Content-Type, Authorization' );
+        header( 'Access-Control-Allow-Headers: Content-Type, Authorization, Cart-Token, Nonce' );
         header( 'Access-Control-Allow-Credentials: true' );
 
-        if ( $_SERVER['REQUEST_METHOD'] === 'OPTIONS' ) {
+        if ( ( $_SERVER['REQUEST_METHOD'] ?? '' ) === 'OPTIONS' ) {
             status_header( 200 );
             exit;
         }
@@ -54,19 +70,45 @@ add_action( 'rest_api_init', function () {
 });
 
 function zayn_get_settings() {
-    // These values can be managed via WordPress Admin → Settings → Zayn Leathers
-    // or stored as WordPress options
+    $promo_raw = get_option( 'zayn_promo_strip', '' );
+    $promo     = null;
+    if ( is_string( $promo_raw ) && $promo_raw !== '' ) {
+        $decoded = json_decode( $promo_raw, true );
+        if ( json_last_error() === JSON_ERROR_NONE && is_array( $decoded ) ) {
+            $promo = $decoded;
+        } else {
+            $promo = [
+                'isActive' => true,
+                'message'  => $promo_raw,
+                'link'     => '',
+            ];
+        }
+    } elseif ( is_array( $promo_raw ) ) {
+        $promo = $promo_raw;
+    }
+
+    $home_raw = get_option( 'zayn_home_config', '{}' );
+    $home     = json_decode( is_string( $home_raw ) ? $home_raw : '{}', true );
+    if ( ! is_array( $home ) ) {
+        $home = [];
+    }
+
     return rest_ensure_response([
         'deliveryFee'            => (int) get_option( 'zayn_delivery_fee', 41 ),
-        'freeShippingThreshold'  => (int) get_option( 'zayn_free_shipping_threshold', 0 ),
+        'freeShippingThreshold'  => (int) get_option( 'zayn_free_shipping_threshold', 2999 ),
         'codEnabled'             => (bool) get_option( 'zayn_cod_enabled', true ),
         'features'               => [
             'invoicing'    => (bool) get_option( 'zayn_invoicing_enabled', false ),
             'videoReviews' => (bool) get_option( 'zayn_video_reviews_enabled', false ),
         ],
         'partialPaymentConfig'   => json_decode( get_option( 'zayn_partial_payment_config', 'null' ), true ),
-        'promoStrip'             => get_option( 'zayn_promo_strip', null ),
+        'promoStrip'             => $promo,
         'announcement'           => get_option( 'zayn_announcement', null ),
+        'homeConfig'             => [
+            'featuredProductIds'   => array_map( 'strval', $home['featuredProductIds'] ?? [] ),
+            'newArrivalProductIds' => array_map( 'strval', $home['newArrivalProductIds'] ?? [] ),
+            'bestsellerProductIds' => array_map( 'strval', $home['bestsellerProductIds'] ?? [] ),
+        ],
     ]);
 }
 
@@ -415,20 +457,48 @@ function zayn_settings_page() {
     if ( isset( $_POST['zayn_save_settings'] ) ) {
         check_admin_referer( 'zayn_settings_nonce' );
         update_option( 'zayn_delivery_fee', intval( $_POST['zayn_delivery_fee'] ?? 41 ) );
-        update_option( 'zayn_free_shipping_threshold', intval( $_POST['zayn_free_shipping_threshold'] ?? 0 ) );
+        update_option( 'zayn_free_shipping_threshold', intval( $_POST['zayn_free_shipping_threshold'] ?? 2999 ) );
         update_option( 'zayn_cod_enabled', isset( $_POST['zayn_cod_enabled'] ) ? '1' : '' );
         update_option( 'zayn_razorpay_key_id', sanitize_text_field( $_POST['zayn_razorpay_key_id'] ?? '' ) );
         update_option( 'zayn_razorpay_key_secret', sanitize_text_field( $_POST['zayn_razorpay_key_secret'] ?? '' ) );
         update_option( 'zayn_frontend_url', esc_url_raw( $_POST['zayn_frontend_url'] ?? 'https://zaynleather.com' ) );
+        update_option( 'zayn_cors_origins', sanitize_text_field( $_POST['zayn_cors_origins'] ?? '' ) );
+
+        $promo = [
+            'isActive' => isset( $_POST['zayn_promo_active'] ),
+            'message'  => sanitize_text_field( $_POST['zayn_promo_message'] ?? '' ),
+            'link'     => esc_url_raw( $_POST['zayn_promo_link'] ?? '' ),
+        ];
+        update_option( 'zayn_promo_strip', wp_json_encode( $promo ) );
+
+        $home = [
+            'newArrivalProductIds' => array_values( array_filter( array_map( 'trim', explode( ',', sanitize_text_field( $_POST['zayn_new_arrival_ids'] ?? '' ) ) ) ) ),
+            'bestsellerProductIds' => array_values( array_filter( array_map( 'trim', explode( ',', sanitize_text_field( $_POST['zayn_bestseller_ids'] ?? '' ) ) ) ) ),
+            'featuredProductIds'   => array_values( array_filter( array_map( 'trim', explode( ',', sanitize_text_field( $_POST['zayn_featured_ids'] ?? '' ) ) ) ) ),
+        ];
+        update_option( 'zayn_home_config', wp_json_encode( $home ) );
+
         echo '<div class="notice notice-success"><p>Settings saved.</p></div>';
     }
 
     $delivery_fee      = get_option( 'zayn_delivery_fee', 41 );
-    $free_threshold    = get_option( 'zayn_free_shipping_threshold', 0 );
+    $free_threshold    = get_option( 'zayn_free_shipping_threshold', 2999 );
     $cod_enabled       = get_option( 'zayn_cod_enabled', '1' );
     $rzp_key           = get_option( 'zayn_razorpay_key_id', '' );
     $rzp_secret        = get_option( 'zayn_razorpay_key_secret', '' );
     $frontend_url      = get_option( 'zayn_frontend_url', 'https://zaynleather.com' );
+    $cors_origins      = get_option( 'zayn_cors_origins', '' );
+
+    $promo_raw = get_option( 'zayn_promo_strip', '' );
+    $promo     = json_decode( is_string( $promo_raw ) ? $promo_raw : '', true );
+    if ( ! is_array( $promo ) ) {
+        $promo = [ 'isActive' => true, 'message' => is_string( $promo_raw ) ? $promo_raw : '', 'link' => '' ];
+    }
+
+    $home = json_decode( (string) get_option( 'zayn_home_config', '{}' ), true );
+    if ( ! is_array( $home ) ) {
+        $home = [];
+    }
 
     ?>
     <div class="wrap">
@@ -442,11 +512,38 @@ function zayn_settings_page() {
                 </tr>
                 <tr>
                     <th>Free Shipping Threshold (₹)</th>
-                    <td><input type="number" name="zayn_free_shipping_threshold" value="<?php echo esc_attr( $free_threshold ); ?>" /></td>
+                    <td><input type="number" name="zayn_free_shipping_threshold" value="<?php echo esc_attr( $free_threshold ); ?>" />
+                    <p class="description">Default 2999 — matches storefront promo copy.</p></td>
                 </tr>
                 <tr>
                     <th>COD Enabled</th>
                     <td><input type="checkbox" name="zayn_cod_enabled" <?php checked( $cod_enabled, '1' ); ?> /></td>
+                </tr>
+                <tr>
+                    <th>Promo strip active</th>
+                    <td><input type="checkbox" name="zayn_promo_active" <?php checked( ! empty( $promo['isActive'] ) ); ?> /></td>
+                </tr>
+                <tr>
+                    <th>Promo strip message</th>
+                    <td><input type="text" name="zayn_promo_message" value="<?php echo esc_attr( $promo['message'] ?? '' ); ?>" class="large-text" placeholder="Free shipping on orders above ₹2,999" /></td>
+                </tr>
+                <tr>
+                    <th>Promo strip link</th>
+                    <td><input type="url" name="zayn_promo_link" value="<?php echo esc_attr( $promo['link'] ?? '' ); ?>" class="regular-text" placeholder="https://zaynleather.com/shop" /></td>
+                </tr>
+                <tr>
+                    <th>New arrival product IDs</th>
+                    <td><input type="text" name="zayn_new_arrival_ids" value="<?php echo esc_attr( implode( ',', $home['newArrivalProductIds'] ?? [] ) ); ?>" class="large-text" placeholder="12,45,78" />
+                    <p class="description">Optional Woo product IDs (comma-separated). Else use product tag <code>new-arrival</code>.</p></td>
+                </tr>
+                <tr>
+                    <th>Bestseller product IDs</th>
+                    <td><input type="text" name="zayn_bestseller_ids" value="<?php echo esc_attr( implode( ',', $home['bestsellerProductIds'] ?? [] ) ); ?>" class="large-text" placeholder="3,9,21" />
+                    <p class="description">Optional. Else Woo “Featured” products / tag <code>bestseller</code>.</p></td>
+                </tr>
+                <tr>
+                    <th>Featured product IDs (legacy)</th>
+                    <td><input type="text" name="zayn_featured_ids" value="<?php echo esc_attr( implode( ',', $home['featuredProductIds'] ?? [] ) ); ?>" class="large-text" /></td>
                 </tr>
                 <tr>
                     <th>Razorpay Key ID</th>
@@ -460,9 +557,22 @@ function zayn_settings_page() {
                     <th>React Frontend URL</th>
                     <td><input type="url" name="zayn_frontend_url" value="<?php echo esc_attr( $frontend_url ); ?>" class="regular-text" placeholder="https://zaynleather.com" /></td>
                 </tr>
+                <tr>
+                    <th>Extra CORS origins</th>
+                    <td><input type="text" name="zayn_cors_origins" value="<?php echo esc_attr( $cors_origins ); ?>" class="large-text" placeholder="https://staging.example.com, https://preview.example.com" />
+                    <p class="description">Comma-separated. Vercel preview URLs (<code>*.vercel.app</code>) are allowed automatically.</p></td>
+                </tr>
             </table>
             <input type="submit" name="zayn_save_settings" value="Save Settings" class="button-primary" />
         </form>
+        <hr />
+        <h2>Go-live checklist</h2>
+        <ol>
+            <li>Woo categories: top-level <code>men</code>, <code>women</code>, <code>kids</code>, <code>bags</code>, <code>accessories</code> (or aliases in brand config).</li>
+            <li>Mark bestsellers as <strong>Featured</strong> or tag <code>bestseller</code>; new items tag <code>new-arrival</code>.</li>
+            <li>Install JWT Auth + this plugin; set frontend URL + free shipping threshold.</li>
+            <li>Create Woo REST API keys; put in Vercel env as <code>VITE_WC_*</code>.</li>
+        </ol>
     </div>
     <?php
 }
@@ -474,6 +584,18 @@ add_action( 'rest_api_init', function () {
     register_rest_route( 'zayn/v1', '/contact', [
         'methods'             => 'POST',
         'callback'            => 'zayn_submit_contact',
+        'permission_callback' => '__return_true',
+    ]);
+
+    register_rest_route( 'zayn/v1', '/newsletter', [
+        'methods'             => 'POST',
+        'callback'            => 'zayn_subscribe_newsletter',
+        'permission_callback' => '__return_true',
+    ]);
+
+    register_rest_route( 'zayn/v1', '/custom-jacket', [
+        'methods'             => 'POST',
+        'callback'            => 'zayn_submit_custom_jacket',
         'permission_callback' => '__return_true',
     ]);
 
@@ -502,6 +624,138 @@ add_action( 'rest_api_init', function () {
     ]);
 });
 
+function zayn_subscribe_newsletter( $request ) {
+    $email  = sanitize_email( $request->get_param( 'email' ) );
+    $gender = sanitize_text_field( $request->get_param( 'gender' ) );
+
+    if ( ! $email || ! is_email( $email ) ) {
+        return new WP_Error( 'invalid_email', 'A valid email is required', [ 'status' => 400 ] );
+    }
+
+    $list = get_option( 'zayn_newsletter_list', [] );
+    if ( ! is_array( $list ) ) $list = [];
+
+    $exists = false;
+    foreach ( $list as $row ) {
+        if ( isset( $row['email'] ) && strtolower( $row['email'] ) === strtolower( $email ) ) {
+            $exists = true;
+            break;
+        }
+    }
+
+    if ( ! $exists ) {
+        $list[] = [
+            'email'      => $email,
+            'gender'     => $gender,
+            'source'     => 'welcome_popup',
+            'subscribed' => current_time( 'mysql' ),
+        ];
+        update_option( 'zayn_newsletter_list', $list );
+    }
+
+    // Store as private post for admin visibility
+    wp_insert_post([
+        'post_type'    => 'zayn_newsletter',
+        'post_title'   => $email,
+        'post_content' => "Gender: $gender\nSource: welcome_popup",
+        'post_status'  => 'private',
+    ]);
+
+    $admin = get_option( 'admin_email' );
+    wp_mail(
+        $admin,
+        'New newsletter signup — Zayn Leathers',
+        "Email: $email\nGender: $gender\nSource: welcome popup"
+    );
+
+    return rest_ensure_response([
+        'success' => true,
+        'message' => $exists
+            ? 'You are already subscribed. Check your inbox for offers.'
+            : 'Subscribed successfully. Watch your inbox for your offer.',
+    ]);
+}
+
+function zayn_submit_custom_jacket( $request ) {
+    $name        = sanitize_text_field( $request->get_param( 'name' ) );
+    $email       = sanitize_email( $request->get_param( 'email' ) );
+    $phone       = sanitize_text_field( $request->get_param( 'phone' ) );
+    $company     = sanitize_text_field( $request->get_param( 'company' ) );
+    $quantity    = max( 1, intval( $request->get_param( 'quantity' ) ?: 1 ) );
+    $gender      = sanitize_text_field( $request->get_param( 'gender' ) );
+    $country     = sanitize_text_field( $request->get_param( 'country' ) );
+    $description = sanitize_textarea_field( $request->get_param( 'description' ) );
+    $styles_raw  = $request->get_param( 'styles' );
+
+    if ( is_string( $styles_raw ) ) {
+        $decoded = json_decode( $styles_raw, true );
+        $styles  = is_array( $decoded ) ? $decoded : [];
+    } elseif ( is_array( $styles_raw ) ) {
+        $styles = $styles_raw;
+    } else {
+        $styles = [];
+    }
+    $styles = array_map( 'sanitize_text_field', $styles );
+
+    if ( ! $name || ! $email || ! is_email( $email ) || ! $description ) {
+        return new WP_Error( 'invalid', 'Name, email and description are required', [ 'status' => 400 ] );
+    }
+
+    $attachment_id = 0;
+    $files = $request->get_file_params();
+    if ( ! empty( $files['file'] ) && ! empty( $files['file']['tmp_name'] ) ) {
+        require_once ABSPATH . 'wp-admin/includes/file.php';
+        require_once ABSPATH . 'wp-admin/includes/media.php';
+        require_once ABSPATH . 'wp-admin/includes/image.php';
+
+        $upload = wp_handle_upload( $files['file'], [ 'test_form' => false ] );
+        if ( ! isset( $upload['error'] ) && ! empty( $upload['file'] ) ) {
+            $filetype = wp_check_filetype( basename( $upload['file'] ), null );
+            $attachment = [
+                'post_mime_type' => $filetype['type'],
+                'post_title'     => sanitize_file_name( basename( $upload['file'] ) ),
+                'post_content'   => '',
+                'post_status'    => 'inherit',
+            ];
+            $attachment_id = wp_insert_attachment( $attachment, $upload['file'] );
+            if ( ! is_wp_error( $attachment_id ) ) {
+                $meta = wp_generate_attachment_metadata( $attachment_id, $upload['file'] );
+                wp_update_attachment_metadata( $attachment_id, $meta );
+            } else {
+                $attachment_id = 0;
+            }
+        }
+    }
+
+    $body = "Name: $name\nEmail: $email\nPhone: $phone\nCompany: $company\nQuantity: $quantity\nGender: $gender\nCountry: $country\nStyles: " . implode( ', ', $styles ) . "\n\n$description";
+
+    $post_id = wp_insert_post([
+        'post_type'    => 'zayn_custom_request',
+        'post_title'   => $name . ' — custom jacket ×' . $quantity,
+        'post_content' => $body,
+        'post_status'  => 'private',
+        'meta_input'   => [
+            '_zayn_email'    => $email,
+            '_zayn_phone'    => $phone,
+            '_zayn_quantity' => $quantity,
+            '_zayn_file_id'  => $attachment_id,
+        ],
+    ]);
+
+    if ( $attachment_id && $post_id && ! is_wp_error( $post_id ) ) {
+        wp_update_post([ 'ID' => $attachment_id, 'post_parent' => $post_id ]);
+    }
+
+    $admin = get_option( 'admin_email' );
+    $headers = [ "Reply-To: $name <$email>" ];
+    wp_mail( $admin, "Custom jacket request — $name", $body, $headers );
+
+    return rest_ensure_response([
+        'success' => true,
+        'message' => 'Request received. We will reply within 24–48 hours.',
+        'id'      => $post_id,
+    ]);
+}
 function zayn_submit_contact( $request ) {
     $name    = sanitize_text_field( $request->get_param( 'name' ) );
     $email   = sanitize_email( $request->get_param( 'email' ) );
@@ -650,5 +904,23 @@ add_action( 'init', function () {
         'show_in_menu' => true,
         'supports'     => [ 'title', 'editor' ],
         'menu_icon'    => 'dashicons-email',
+    ]);
+
+    register_post_type( 'zayn_newsletter', [
+        'labels'       => [ 'name' => 'Newsletter Signups', 'singular_name' => 'Newsletter Signup' ],
+        'public'       => false,
+        'show_ui'      => true,
+        'show_in_menu' => true,
+        'supports'     => [ 'title', 'editor' ],
+        'menu_icon'    => 'dashicons-email-alt',
+    ]);
+
+    register_post_type( 'zayn_custom_request', [
+        'labels'       => [ 'name' => 'Custom Jacket Requests', 'singular_name' => 'Custom Jacket Request' ],
+        'public'       => false,
+        'show_ui'      => true,
+        'show_in_menu' => true,
+        'supports'     => [ 'title', 'editor' ],
+        'menu_icon'    => 'dashicons-admin-customizer',
     ]);
 });
