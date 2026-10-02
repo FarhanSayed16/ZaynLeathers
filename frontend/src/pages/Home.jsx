@@ -3,6 +3,7 @@ import Banner from "../components/Banner";
 import CategoryTiles from "../components/CategoryTiles";
 import LatestCollection from "../components/LatestCollection";
 import BestSeller from "../components/BestSeller";
+import CategoryCarousel from "../components/CategoryCarousel";
 import ForYou from "../components/ForYou";
 import InstagramSection from "../components/InstagramSection";
 import Review from "../components/Review";
@@ -20,12 +21,12 @@ const Home = () => {
     showBestSellers: true,
     showInstagram: true,
     showReviews: true,
-    newArrivalsTitle: "NEW ARRIVALS",
-    bestSellersTitle: "BEST SELLERS",
+    newArrivalsTitle: "New Arrivals",
+    bestSellersTitle: "Best Selling Products",
   };
 
   return (
-    <div className="bg-tz-cream">
+    <div className="bg-white">
       <SEO
         title="Home"
         description="Crafted in leather. Made to last. Shop leather jackets, bags, and more at Zayn Leathers."
@@ -33,38 +34,57 @@ const Home = () => {
 
       {config.showHero !== false && <Banner />}
 
-      <div className="bg-white">
-        {config.showCategories !== false && (
-          <section data-aos="fade-up">
-            <CategoryTiles />
-          </section>
-        )}
-      </div>
+      {config.showBestSellers !== false && (
+        <div data-aos="fade-up">
+          <BestSeller title={config.bestSellersTitle || "Best Selling Products"} />
+        </div>
+      )}
 
       {config.showNewArrivals !== false && (
-        <section
-          className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8"
-          data-aos="fade-up"
-        >
-          <LatestCollection title={config.newArrivalsTitle} />
-        </section>
+        <div className="border-t border-gray-100" data-aos="fade-up">
+          <LatestCollection title={config.newArrivalsTitle || "New Arrivals"} />
+        </div>
+      )}
+
+      <div className="border-t border-gray-100" data-aos="fade-up">
+        <CategoryCarousel
+          title="Men's Leather Jackets"
+          subtitle="Bikers, bombers, and everyday leather"
+          department="men"
+          viewAllHref="/shop?department=men"
+        />
+      </div>
+
+      <div className="border-t border-gray-100" data-aos="fade-up">
+        <CategoryCarousel
+          title="Women's Leather"
+          subtitle="Jackets and essentials made to last"
+          department="women"
+          viewAllHref="/shop?department=women"
+        />
+      </div>
+
+      <div className="border-t border-gray-100" data-aos="fade-up">
+        <CategoryCarousel
+          title="Bags & Everyday Carry"
+          subtitle="Handbags, totes, and work bags"
+          department="bags"
+          viewAllHref="/shop?department=bags"
+        />
+      </div>
+
+      {config.showCategories !== false && (
+        <div className="border-t border-gray-100 bg-tz-cream/40" data-aos="fade-up">
+          <CategoryTiles />
+        </div>
       )}
 
       <div data-aos="fade-up">
         <VibeCTA />
       </div>
 
-      {config.showBestSellers !== false && (
-        <section
-          className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8"
-          data-aos="fade-up"
-        >
-          <BestSeller title={config.bestSellersTitle} />
-        </section>
-      )}
-
       <section
-        className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8"
+        className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 border-t border-gray-100"
         data-aos="fade-up"
       >
         <ForYou />

@@ -7,265 +7,328 @@ import {
   FaCheckCircle,
   FaExclamationCircle,
   FaWhatsapp,
-  FaInstagram,
-  FaFacebookF,
+  FaClock,
 } from "react-icons/fa";
+import { Link } from "react-router-dom";
 import brand from "../brand";
 import { ShopContext } from "../context/ShopContext";
 import SEO from "../components/SEO";
+import Breadcrumbs from "../components/Breadcrumbs";
 import * as shopApi from "../api/shopApi";
 
 const Contact = () => {
   const { settings } = useContext(ShopContext);
-  const whatsappFeatureOn = settings?.features?.whatsapp === true;
+  // Prefer brand WhatsApp on contact page; feature flag only for optional marketing widgets elsewhere
   const whatsappHref =
-    whatsappFeatureOn && (brand.contact.whatsappUrl || brand.social.whatsapp);
+    brand.contact.whatsappUrl ||
+    brand.social.whatsapp ||
+    (settings?.features?.whatsapp ? brand.contact.whatsappUrl : "");
 
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
-    message: ""
+    message: "",
   });
   const [formStatus, setFormStatus] = useState({ type: "", message: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setFormStatus({ type: "", message: "" });
 
     try {
       const data = await shopApi.submitContact(formData);
-
       if (data.success) {
-        setFormStatus({ type: "success", message: data.message });
+        setFormStatus({ type: "success", message: data.message || "Message sent — we'll reply soon." });
         setFormData({ name: "", email: "", phone: "", message: "" });
       } else {
-        setFormStatus({ type: "error", message: data.message || "Something went wrong!" });
+        setFormStatus({ type: "error", message: data.message || "Something went wrong." });
       }
     } catch (error) {
       setFormStatus({
         type: "error",
-        message: error.message || "Something went wrong!",
+        message: error.message || "Something went wrong.",
       });
     }
 
     setIsSubmitting(false);
   };
 
+  const fieldClass =
+    "w-full border border-gray-200 bg-white px-4 py-3 text-sm text-tz-navy placeholder:text-tz-navy/35 focus:outline-none focus:border-tz-navy focus:ring-1 focus:ring-tz-navy/20 transition-colors";
+  const labelClass =
+    "block text-[11px] font-semibold uppercase tracking-[0.12em] text-tz-navy/55 mb-2";
+
+  const channels = [
+    brand.contact.email && {
+      icon: FaEnvelope,
+      label: "Email",
+      value: brand.contact.email,
+      href: `mailto:${brand.contact.email}`,
+    },
+    brand.contact.phone && {
+      icon: FaPhone,
+      label: "Phone",
+      value: brand.contact.phone,
+      href: brand.contact.phoneHref || `tel:${String(brand.contact.phone).replace(/\s/g, "")}`,
+    },
+    whatsappHref && {
+      icon: FaWhatsapp,
+      label: "WhatsApp",
+      value: brand.contact.whatsapp || brand.contact.phone,
+      href: whatsappHref,
+      external: true,
+    },
+  ].filter(Boolean);
+
   return (
-    <div className="min-h-screen bg-tz-cream relative overflow-hidden">
-      <SEO title="Contact Us" description={`Get in touch with ${brand.name} support.`} />
-      
-      {/* Decorative ambient background glows */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-tz-pink/15 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute top-[40%] right-0 w-[500px] h-[500px] bg-blue-100/40 rounded-full blur-[120px] pointer-events-none" />
-      
-      {/* Centered Hero Section */}
-      <section className="pt-24 sm:pt-32 pb-12 sm:pb-16 px-4 text-center relative z-10">
-        <p className="text-[11px] sm:text-xs font-bold tracking-[0.25em] uppercase text-tz-pink mb-4">
-          Get in touch
-        </p>
-        <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-bold text-tz-navy tracking-tight mb-5">
-          Contact <span className="text-tz-pink font-serif italic font-medium pr-2">Us</span>
-        </h1>
-        <p className="text-sm sm:text-base text-tz-navy/60 max-w-md mx-auto leading-relaxed">
-          We'd love to hear from you. Send us a message and our team will get back to you as soon as possible.
-        </p>
-      </section>
+    <div className="min-h-screen bg-tz-cream">
+      <SEO
+        title="Contact Us"
+        description={`Get in touch with ${brand.name}. Email, phone, WhatsApp, or send a message.`}
+      />
 
-      {/* Minimal Contact Info Row */}
-      <section className="max-w-3xl mx-auto px-4 pb-16 sm:pb-20 relative z-10">
-        <div className="flex flex-wrap items-center justify-center gap-10 sm:gap-16">
-          {brand.contact.email && (
-            <a href={`mailto:${brand.contact.email}`} className="flex flex-col items-center text-center group">
-              <div className="w-14 h-14 rounded-full bg-white shadow-sm border border-tz-pink/10 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:shadow-md transition-all duration-300">
-                <FaEnvelope className="text-tz-pink" size={18} />
-              </div>
-              <h3 className="text-sm font-bold text-tz-navy mb-1 tracking-wide">Email</h3>
-              <p className="text-sm text-tz-navy/60">{brand.contact.email}</p>
-            </a>
-          )}
-          {brand.contact.phone && (
-            <a href={brand.contact.phoneHref || `tel:${String(brand.contact.phone).replace(/\s/g, "")}`} className="flex flex-col items-center text-center group">
-              <div className="w-14 h-14 rounded-full bg-white shadow-sm border border-tz-pink/10 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:shadow-md transition-all duration-300">
-                <FaPhone className="text-tz-pink" size={18} />
-              </div>
-              <h3 className="text-sm font-bold text-tz-navy mb-1 tracking-wide">Phone</h3>
-              <p className="text-sm text-tz-navy/60">{brand.contact.phone}</p>
-            </a>
-          )}
-          {whatsappHref && (
-            <a
-              href={whatsappHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex flex-col items-center text-center group"
-            >
-              <div className="w-14 h-14 rounded-full bg-white shadow-sm border border-tz-pink/10 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:shadow-md transition-all duration-300">
-                <FaWhatsapp className="text-tz-pink" size={18} />
-              </div>
-              <h3 className="text-sm font-bold text-tz-navy mb-1 tracking-wide">WhatsApp</h3>
-              <p className="text-sm text-tz-navy/60">{brand.contact.phone}</p>
-            </a>
-          )}
-          {brand.contact.address && (
-            <div className="flex flex-col items-center text-center group">
-              <div className="w-14 h-14 rounded-full bg-white shadow-sm border border-tz-pink/10 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:shadow-md transition-all duration-300">
-                <FaMapMarkerAlt className="text-tz-pink" size={18} />
-              </div>
-              <h3 className="text-sm font-bold text-tz-navy mb-1 tracking-wide">Store</h3>
-              <p className="text-sm text-tz-navy/60 max-w-[180px]">{brand.contact.address}</p>
-            </div>
-          )}
-        </div>
-        {(brand.social.instagram || brand.social.facebook) && (
-          <div className="flex justify-center gap-3 mt-10">
-            {brand.social.instagram && (
-              <a
-                href={brand.social.instagram}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-white border border-tz-pink/15 flex items-center justify-center text-tz-navy hover:text-tz-pink"
-                aria-label="Instagram"
-              >
-                <FaInstagram size={16} />
-              </a>
-            )}
-            {brand.social.facebook && (
-              <a
-                href={brand.social.facebook}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-white border border-tz-pink/15 flex items-center justify-center text-tz-navy hover:text-tz-pink"
-                aria-label="Facebook"
-              >
-                <FaFacebookF size={16} />
-              </a>
-            )}
-          </div>
-        )}
-      </section>
-
-      {/* Centered Form Section */}
-      <section className="px-4 pb-20 sm:pb-28 relative z-10">
-        <div className="max-w-2xl mx-auto bg-white/80 backdrop-blur-md rounded-3xl shadow-[0_8px_40px_rgb(0,0,0,0.04)] border border-white p-6 sm:p-10 md:p-12 relative overflow-hidden">
-          {/* Subtle interior glow */}
-          <div className="absolute -top-32 -right-32 w-64 h-64 bg-tz-pink/10 rounded-full blur-3xl pointer-events-none" />
-          
-          <div className="text-center mb-10 relative z-10">
-            <h2 className="text-2xl font-bold text-tz-navy mb-2">Send Message</h2>
-            <p className="text-sm text-tz-navy/60">Fill out the form below and we'll reply within 24 hours.</p>
-          </div>
-
-          {formStatus.message && (
-            <div className={`mb-8 p-4 rounded-xl flex items-center justify-center gap-3 text-sm font-medium relative z-10 ${
-              formStatus.type === "success" 
-                ? "bg-green-50 text-green-700 border border-green-100" 
-                : "bg-red-50 text-red-700 border border-red-100"
-            }`}>
-              {formStatus.type === "success" 
-                ? <FaCheckCircle size={16} className="shrink-0" />
-                : <FaExclamationCircle size={16} className="shrink-0" />
-              }
-              <p>{formStatus.message}</p>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-tz-navy/50 mb-2 ml-1">Your Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-5 py-3.5 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-tz-pink/10 focus:border-tz-pink transition-all text-sm outline-none bg-gray-50/50 hover:bg-white focus:bg-white shadow-sm"
-                  placeholder="Jane Doe"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-tz-navy/50 mb-2 ml-1">Email Address</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-5 py-3.5 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-tz-pink/10 focus:border-tz-pink transition-all text-sm outline-none bg-gray-50/50 hover:bg-white focus:bg-white shadow-sm"
-                  placeholder="jane@example.com"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-tz-navy/50 mb-2 ml-1">Phone Number</label>
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                className="w-full px-5 py-3.5 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-tz-pink/10 focus:border-tz-pink transition-all text-sm outline-none bg-gray-50/50 hover:bg-white focus:bg-white shadow-sm"
-                placeholder="+91 98765 43210"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-tz-navy/50 mb-2 ml-1">Your Message</label>
-              <textarea
-                name="message"
-                value={formData.message}
-                onChange={handleChange}
-                required
-                rows="4"
-                className="w-full px-5 py-4 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-tz-pink/10 focus:border-tz-pink transition-all text-sm outline-none resize-none bg-gray-50/50 hover:bg-white focus:bg-white shadow-sm"
-                placeholder="How can we help you?"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full bg-tz-navy text-white hover:bg-tz-navy/90 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-tz-navy/20 transition-all duration-300 py-4 rounded-2xl font-bold text-sm tracking-wide disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0 flex items-center justify-center gap-2 mt-4"
-            >
-              {isSubmitting ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <>
-                  <span>Send Message</span>
-                  <FaPaperPlane size={12} />
-                </>
-              )}
-            </button>
-          </form>
+      {/* Compact page header */}
+      <section className="border-b border-tz-navy/10 bg-white">
+        <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-8 sm:pb-10">
+          <Breadcrumbs
+            items={[
+              { label: "Home", to: "/" },
+              { label: "Contact Us" },
+            ]}
+          />
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-tz-navy/45 mt-1">
+            {brand.name}
+          </p>
+          <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-semibold text-tz-navy tracking-tight mt-1">
+            Contact us
+          </h1>
+          <p className="mt-3 text-sm text-tz-navy/60 max-w-xl leading-relaxed">
+            Questions about an order, sizing, or a custom jacket — we usually reply within 24 hours.
+          </p>
         </div>
       </section>
 
-      {/* Sleek Map Banner */}
-      {brand.contact.mapEmbedUrl && (
-        <section className="w-full h-72 sm:h-96 relative bg-gray-50 z-10">
-          <div className="absolute inset-0 pointer-events-none shadow-[inset_0_4px_20px_rgba(0,0,0,0.03)] z-10" />
+      <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+        <div className="grid lg:grid-cols-[1fr_340px] gap-10 lg:gap-12 items-start">
+          {/* Form */}
+          <div className="bg-white border border-gray-100 p-6 sm:p-8 md:p-10">
+            <h2 className="font-display text-2xl font-semibold text-tz-navy mb-1">
+              Send a message
+            </h2>
+            <p className="text-sm text-tz-navy/55 mb-8">
+              Fill in the form and our team will get back to you.
+            </p>
+
+            {formStatus.message ? (
+              <div
+                className={`mb-6 px-4 py-3 flex items-start gap-3 text-sm ${
+                  formStatus.type === "success"
+                    ? "bg-green-50 text-green-800 border border-green-100"
+                    : "bg-red-50 text-red-800 border border-red-100"
+                }`}
+                role="status"
+              >
+                {formStatus.type === "success" ? (
+                  <FaCheckCircle size={16} className="shrink-0 mt-0.5" />
+                ) : (
+                  <FaExclamationCircle size={16} className="shrink-0 mt-0.5" />
+                )}
+                <p>{formStatus.message}</p>
+              </div>
+            ) : null}
+
+            <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass} htmlFor="contact-name">
+                    Name <span className="text-tz-pink">*</span>
+                  </label>
+                  <input
+                    id="contact-name"
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    className={fieldClass}
+                    placeholder="Your name"
+                    autoComplete="name"
+                  />
+                </div>
+                <div>
+                  <label className={labelClass} htmlFor="contact-email">
+                    Email <span className="text-tz-pink">*</span>
+                  </label>
+                  <input
+                    id="contact-email"
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    className={fieldClass}
+                    placeholder="you@example.com"
+                    autoComplete="email"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className={labelClass} htmlFor="contact-phone">
+                  Phone
+                </label>
+                <input
+                  id="contact-phone"
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  className={fieldClass}
+                  placeholder="+91 …"
+                  autoComplete="tel"
+                />
+              </div>
+
+              <div>
+                <label className={labelClass} htmlFor="contact-message">
+                  Message <span className="text-tz-pink">*</span>
+                </label>
+                <textarea
+                  id="contact-message"
+                  name="message"
+                  value={formData.message}
+                  onChange={handleChange}
+                  required
+                  rows={5}
+                  className={`${fieldClass} resize-y min-h-[120px]`}
+                  placeholder="How can we help?"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-tz-navy text-white text-sm font-bold uppercase tracking-wide hover:bg-black transition-colors disabled:opacity-60"
+              >
+                {isSubmitting ? (
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>
+                    Send message
+                    <FaPaperPlane size={12} aria-hidden />
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+
+          {/* Sidebar */}
+          <aside className="space-y-5 lg:sticky lg:top-28">
+            <div className="bg-white border border-gray-100 p-6 space-y-5">
+              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-tz-navy/45">
+                Reach us directly
+              </p>
+              <ul className="space-y-4">
+                {channels.map((ch) => {
+                  const Icon = ch.icon;
+                  return (
+                    <li key={ch.label}>
+                      <a
+                        href={ch.href}
+                        target={ch.external ? "_blank" : undefined}
+                        rel={ch.external ? "noopener noreferrer" : undefined}
+                        className="flex gap-3 group"
+                      >
+                        <span className="w-10 h-10 shrink-0 inline-flex items-center justify-center bg-tz-cream text-tz-navy border border-tz-navy/10 group-hover:bg-tz-navy group-hover:text-white transition-colors">
+                          <Icon size={14} />
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-[11px] font-semibold uppercase tracking-wider text-tz-navy/45">
+                            {ch.label}
+                          </span>
+                          <span className="block text-sm text-tz-navy group-hover:underline underline-offset-2 break-words">
+                            {ch.value}
+                          </span>
+                        </span>
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+
+            {brand.contact.address ? (
+              <div className="bg-white border border-gray-100 p-6">
+                <div className="flex gap-3">
+                  <span className="w-10 h-10 shrink-0 inline-flex items-center justify-center bg-tz-cream text-tz-navy border border-tz-navy/10">
+                    <FaMapMarkerAlt size={14} />
+                  </span>
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-tz-navy/45 mb-1">
+                      Store
+                    </p>
+                    <p className="text-sm text-tz-navy/75 leading-relaxed">
+                      {brand.contact.address}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
+            {brand.contact.hours ? (
+              <div className="bg-white border border-gray-100 p-6">
+                <div className="flex gap-3">
+                  <span className="w-10 h-10 shrink-0 inline-flex items-center justify-center bg-tz-cream text-tz-navy border border-tz-navy/10">
+                    <FaClock size={14} />
+                  </span>
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-tz-navy/45 mb-1">
+                      Hours
+                    </p>
+                    <p className="text-sm text-tz-navy/75">{brand.contact.hours}</p>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
+            <div className="bg-tz-navy text-white p-6">
+              <p className="font-display text-xl font-semibold mb-2">Custom jacket?</p>
+              <p className="text-sm text-white/70 mb-4 leading-relaxed">
+                Share fit, leather, and a reference — we craft made-to-order pieces.
+              </p>
+              <Link
+                to="/custom-jackets"
+                className="inline-flex text-sm font-semibold underline underline-offset-4 decoration-white/40 hover:decoration-white"
+              >
+                Start a custom request →
+              </Link>
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      {brand.contact.mapEmbedUrl ? (
+        <section className="w-full h-64 sm:h-80 border-t border-tz-navy/10 bg-gray-100">
           <iframe
-            title={`Google Map - ${brand.contact.mapTitle}`}
+            title={brand.contact.mapTitle || "Store location"}
             src={brand.contact.mapEmbedUrl}
             width="100%"
             height="100%"
-            className="w-full h-full object-cover filter grayscale-[0.2] contrast-[0.95] opacity-90 hover:opacity-100 transition-opacity duration-700"
+            className="w-full h-full grayscale-[20%]"
             style={{ border: 0 }}
             allowFullScreen=""
             loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
           />
         </section>
-      )}
+      ) : null}
     </div>
   );
 };

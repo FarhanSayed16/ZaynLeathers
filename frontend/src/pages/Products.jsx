@@ -300,115 +300,95 @@ const Products = () => {
           className='flex flex-col lg:flex-row gap-6 lg:gap-10'
         >
           {/* Product Images Section */}
-          <motion.div variants={itemVariants} className='flex-1'>
-            <div className='flex flex-col-reverse lg:flex-row gap-3'>
-              {/* Thumbnail Images - Horizontal scroll on mobile, vertical on desktop */}
+          <motion.div variants={itemVariants} className='flex-1 min-w-0'>
+            <div className='flex flex-col-reverse lg:flex-row gap-3 lg:gap-4'>
               {productData.image && productData.image.length > 0 && (
-                <motion.div
-                  variants={itemVariants}
-                  className='flex lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto pb-2 lg:pb-0 no-scrollbar'
-                  style={{ maxHeight: '500px' }}
+                <div
+                  className='flex lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto pb-1 lg:pb-0 no-scrollbar lg:max-h-[560px]'
+                  role="listbox"
+                  aria-label="Product images"
                 >
                   {productData.image.map((item, index) => (
-                    <img
+                    <button
                       key={item || index}
+                      type="button"
+                      role="option"
+                      aria-selected={image === item}
                       onClick={() => setImage(item)}
-                      src={productThumb(item)}
-                      alt={productData.imageAlt || `Product view ${index + 1}`}
-                      width={80}
-                      height={80}
-                      loading="lazy"
-                      decoding="async"
-                      className={`w-16 h-16 lg:w-20 lg:h-20 object-cover rounded-xl cursor-pointer border-2 transition-all duration-300 flex-shrink-0 hover:scale-105 ${
-                        image === item ? 'border-black shadow-lg' : 'border-transparent hover:border-gray-300'
+                      className={`shrink-0 border-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-tz-navy ${
+                        image === item
+                          ? 'border-tz-navy'
+                          : 'border-transparent hover:border-gray-300'
                       }`}
-                    />
+                    >
+                      <img
+                        src={productThumb(item)}
+                        alt={productData.imageAlt || `Product view ${index + 1}`}
+                        width={80}
+                        height={80}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-16 h-16 lg:w-[72px] lg:h-[72px] object-cover block"
+                      />
+                    </button>
                   ))}
-                </motion.div>
+                </div>
               )}
 
-              {/* Main Image with Swipe Functionality */}
-              <motion.div
-                variants={itemVariants}
-                className='relative flex-1 mt-6 overflow-hidden rounded-2xl bg-gray-100'
+              <div
+                className='relative flex-1 overflow-hidden bg-gray-50 aspect-[4/5] lg:aspect-auto lg:min-h-[520px]'
                 onTouchStart={onTouchStart}
                 onTouchMove={onTouchMove}
                 onTouchEnd={onTouchEnd}
               >
-                <motion.img
+                <img
                   key={image}
-                  initial={{ opacity: 0, scale: 0.98 }}
-                  animate={{ opacity: 1, scale: isImageZoomed ? 1.5 : 1 }}
-                  transition={{ duration: 0.25 }}
                   src={productGallery(image || productData.image?.[0])}
                   alt={productData.imageAlt || productData.name}
                   width={900}
                   height={1100}
                   decoding="async"
-                  className={`w-full h-auto cursor-${isImageZoomed ? 'zoom-out' : 'zoom-in'} transition-all duration-300 rounded-2xl`}
+                  className={`w-full h-full object-cover transition-transform duration-300 ${
+                    isImageZoomed ? 'scale-150 cursor-zoom-out' : 'cursor-zoom-in'
+                  }`}
                   onClick={(e) => {
                     e.stopPropagation()
                     setIsImageZoomed(!isImageZoomed)
                   }}
                 />
 
-                {/* Navigation Arrows for Mobile */}
                 {productData.image && productData.image.length > 1 && !isImageZoomed && (
                   <>
                     <button
+                      type="button"
                       onClick={prevImage}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all lg:hidden"
+                      aria-label="Previous image"
+                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-tz-navy p-2 shadow-sm transition-colors lg:hidden"
                     >
                       <MdKeyboardArrowLeft className="text-xl" />
                     </button>
                     <button
+                      type="button"
                       onClick={nextImage}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all lg:hidden"
+                      aria-label="Next image"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-tz-navy p-2 shadow-sm transition-colors lg:hidden"
                     >
                       <MdKeyboardArrowRight className="text-xl" />
                     </button>
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-tz-navy/80 text-white px-2.5 py-0.5 text-[11px] tracking-wide tabular-nums">
+                      {productData.image.indexOf(image) + 1} / {productData.image.length}
+                    </div>
                   </>
                 )}
-
-                {/* Image Counter */}
-                {productData.image && productData.image.length > 1 && (
-                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-3 py-1 rounded-full text-sm backdrop-blur-sm">
-                    {productData.image.indexOf(image) + 1} / {productData.image.length}
-                  </div>
-                )}
-
-                {/* Zoom Hint */}
-                {!isImageZoomed && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 0.6 }}
-                    className="hidden lg:block absolute bottom-4 right-4 bg-tz-navy text-white hover:bg-tz-pink hover:text-white transition-colors duration-300 p-2 rounded-full text-xs"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                    </svg>
-                  </motion.div>
-                )}
-
-                {/* Swipe Hint for Mobile */}
-                {productData.image && productData.image.length > 1 && !isImageZoomed && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="lg:hidden absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-xs flex items-center gap-1 backdrop-blur-sm"
-                  >
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                    </svg>
-                    <span>Swipe</span>
-                  </motion.div>
-                )}
-              </motion.div>
+              </div>
             </div>
           </motion.div>
 
-          {/* Product Information */}
-          <motion.div variants={itemVariants} className='flex-1 space-y-5'>
+          {/* Sticky buy box */}
+          <motion.div
+            variants={itemVariants}
+            className='flex-1 space-y-5 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:pb-4'
+          >
             {/* Category and Name */}
             <div>
               <motion.p variants={itemVariants} className='text-sm text-gray-500 uppercase tracking-wider'>
@@ -477,38 +457,45 @@ const Products = () => {
 
             {/* Size Selection */}
             {productData.sizes && productData.sizes.length > 0 && (
-              <motion.div variants={itemVariants} className='space-y-3'>
-                <div className='flex items-center justify-between'>
-                  <p className='font-medium text-sm'>Select Size</p>
-                  <span className="text-[11px] text-tz-navy/45">
+              <div className='space-y-3'>
+                <div className='flex items-center justify-between gap-3'>
+                  <p className='font-semibold text-sm text-tz-navy'>
+                    Size
+                    {size ? (
+                      <span className="ml-2 font-normal text-tz-navy/55">· {size}</span>
+                    ) : (
+                      <span className="ml-2 font-normal text-tz-pink">Select one</span>
+                    )}
+                  </p>
+                  <span className="text-[11px] text-tz-navy/45 shrink-0">
                     {productData.department === 'bags' ? 'See size / capacity below' : 'True to size for leather'}
                   </span>
                 </div>
 
-                <div className='flex flex-wrap gap-2'>
+                <div className='flex flex-wrap gap-2' role="group" aria-label="Select size">
                   {productData.sizes.map((item, index) => {
                     const oos = !isSizeInStock(productData, item)
                     return (
-                    <motion.button
+                    <button
                       key={index}
-                      whileHover={oos ? {} : { scale: 1.03 }}
-                      whileTap={oos ? {} : { scale: 0.97 }}
+                      type="button"
                       onClick={() => !oos && setSize(item)}
                       disabled={oos}
-                      className={`min-w-[60px] px-4 py-2.5 rounded-xl border-2 transition-all duration-300 text-sm font-medium ${
+                      aria-pressed={item === size}
+                      className={`min-w-[56px] px-3.5 py-2.5 border text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-tz-navy focus-visible:ring-offset-1 ${
                         oos
                           ? 'bg-gray-50 border-gray-200 text-gray-400 line-through cursor-not-allowed'
                           : item === size
-                          ? 'bg-tz-navy text-white hover:bg-tz-pink hover:text-white transition-colors duration-300 border-black shadow-md'
-                          : 'bg-gray-100 border-gray-200 hover:border-gray-400'
+                          ? 'bg-tz-navy text-white border-tz-navy'
+                          : 'bg-white border-gray-300 text-tz-navy hover:border-tz-navy'
                       }`}
                     >
                       {item}
-                    </motion.button>
+                    </button>
                     )
                   })}
                 </div>
-              </motion.div>
+              </div>
             )}
 
             {/* Colors Available - Desktop */}
@@ -534,28 +521,34 @@ const Products = () => {
               )}
             </motion.div>
 
-            {/* Add to Cart Button */}
-            <motion.div variants={itemVariants} className='pt-2'>
-              <motion.button
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.98 }}
+            {/* Add to Cart + custom fit */}
+            <div className='pt-1 space-y-3'>
+              <button
+                type="button"
                 onClick={handleAddToCart}
                 disabled={totalStock <= 0 || (size && !isSizeInStock(productData, size))}
-                className={`w-full py-4 rounded-xl text-sm font-semibold tracking-wider transition-all duration-300 flex items-center justify-center gap-2 ${
+                className={`w-full py-4 text-sm font-semibold tracking-wider transition-colors flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-tz-navy ${
                   totalStock <= 0 || (size && !isSizeInStock(productData, size))
-                    ? 'bg-gray-300 cursor-not-allowed'
-                    : 'bg-tz-navy text-white hover:bg-tz-pink hover:text-white transition-colors duration-300 hover:bg-gray-800 shadow-lg hover:shadow-xl'
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-tz-navy text-white hover:bg-black'
                 }`}
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
                 {totalStock <= 0 ? "SOLD OUT" : "ADD TO CART"}
-              </motion.button>
+              </button>
+              <Link
+                to="/custom-jackets"
+                className="group flex items-center justify-center gap-1.5 text-sm text-tz-navy/80 hover:text-tz-navy underline-offset-4 hover:underline"
+              >
+                Need a custom fit?
+                <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
+              </Link>
               <p className="text-[11px] text-tz-navy/50 text-center">
                 Cash on delivery · Easy 7-day returns · Free shipping above {formatPrice(999)}
               </p>
-            </motion.div>
+            </div>
 
             {/* Share Section */}
             <motion.div variants={itemVariants} className='pt-2'>
@@ -704,21 +697,29 @@ const Products = () => {
       </div>
 
       {totalStock > 0 && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-tz-pink/20 px-4 py-3 flex items-center gap-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold truncate">{productData.name}</p>
-            <p className="text-xs text-tz-navy/55">
-              {formatPrice(displayPrice)}
-              {productData.sizes?.length ? ` · ${size || 'Select size'}` : ''}
-            </p>
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 px-4 py-3 flex flex-col gap-2 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <div className="flex items-center gap-3">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold truncate text-tz-navy">{productData.name}</p>
+              <p className="text-xs text-tz-navy/55">
+                {formatPrice(displayPrice)}
+                {productData.sizes?.length ? ` · ${size || 'Select size'}` : ''}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              className="shrink-0 bg-tz-navy text-white px-4 py-2.5 text-xs font-semibold tracking-wide"
+            >
+              ADD TO CART
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={handleAddToCart}
-            className="shrink-0 bg-tz-navy text-white px-4 py-2.5 rounded-xl text-xs font-semibold"
+          <Link
+            to="/custom-jackets"
+            className="text-center text-[11px] text-tz-navy/65 hover:text-tz-navy"
           >
-            ADD TO CART
-          </button>
+            Need a custom fit? →
+          </Link>
         </div>
       )}
 

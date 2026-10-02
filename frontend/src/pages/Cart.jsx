@@ -437,38 +437,17 @@ const Cart = () => {
                   <CartTotal />
                 </motion.div>
 
-                {/* Checkout Button */}
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className="mt-6"
-                >
-                  <motion.button
-                    variants={buttonVariants}
-                    initial="initial"
-                    whileHover="hover"
-                    whileTap="tap"
+                <div className="mt-6">
+                  <button
+                    type="button"
                     onClick={handleCheckout}
                     disabled={cartData.length === 0}
-                    className={`w-full bg-tz-navy text-white hover:bg-gray-800 transition-colors duration-300 py-4 px-6 rounded-none text-sm font-semibold tracking-wider relative overflow-hidden ${
+                    className={`w-full bg-tz-navy text-white hover:bg-black transition-colors py-4 px-6 text-sm font-semibold tracking-wider ${
                       cartData.length === 0 ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                   >
-                    <span className="relative z-10 flex items-center justify-center gap-2">
-                      PROCEED TO CHECKOUT
-                      <motion.svg
-                        animate={{ x: [0, 5, 0] }}
-                        transition={{ duration: 1, repeat: Infinity }}
-                        className="w-4 h-4" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                      </motion.svg>
-                    </span>
-                  </motion.button>
+                    PROCEED TO CHECKOUT
+                  </button>
 
                   {!token && cartData.length > 0 && (
                     <p className="text-center text-xs text-tz-navy/60 mt-3">
@@ -476,19 +455,13 @@ const Cart = () => {
                     </p>
                   )}
 
-                  {/* Secure Checkout Badge */}
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.6 }}
-                    className="flex items-center justify-center gap-2 mt-4 text-xs text-gray-500"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="flex items-center justify-center gap-2 mt-4 text-xs text-gray-500">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
-                    <span>Secure Checkout • SSL Encrypted</span>
-                  </motion.div>
-                </motion.div>
+                    <span>Secure Checkout · COD & Razorpay</span>
+                  </div>
+                </div>
               </div>
             </motion.div>
 
@@ -526,21 +499,28 @@ const Cart = () => {
         />
       )}
 
+      {/* Mobile sticky checkout — items total matches header cart */}
+      {cartData.length > 0 && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 px-4 py-3 flex items-center gap-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] uppercase tracking-wider text-tz-navy/45">Cart total</p>
+            <p className="text-base font-bold text-tz-navy tabular-nums">
+              {formatPrice(getCartAmount())}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleCheckout}
+            className="shrink-0 bg-tz-navy text-white px-5 py-3 text-xs font-semibold tracking-wide"
+          >
+            CHECKOUT
+          </button>
+        </div>
+      )}
+
       <style>{`
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-          width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-          background: #f1f1f1;
-          border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb {
-          background: #888;
-          border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-          background: #555;
+        @media (max-width: 1023px) {
+          .min-h-screen { padding-bottom: 5.5rem; }
         }
       `}</style>
     </motion.div>
