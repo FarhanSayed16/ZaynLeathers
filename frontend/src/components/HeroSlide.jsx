@@ -2,6 +2,9 @@ import React from "react";
 import { Link } from "react-router-dom";
 import brand from "../brand";
 
+/**
+ * Phase B hero typography — brand + serif headline + italic highlight (reference “NEW Arrival”).
+ */
 export default function HeroSlide({
   image,
   title,
@@ -10,12 +13,15 @@ export default function HeroSlide({
   ctaLink,
   isPriority,
 }) {
+  const highlight = brand.about?.heroHighlight || "";
+  const displayTitle = title || brand.about?.heroTitle || brand.tagline;
+
   return (
     <div className="relative min-w-full h-[72vh] sm:h-[78vh] md:h-[85vh] min-h-[420px] max-h-[920px] flex-shrink-0 snap-start overflow-hidden bg-tz-navy">
       <img
         src={image}
-        alt={title || brand.name}
-        className="absolute inset-0 w-full h-full object-cover scale-105 animate-hero-zoom"
+        alt={displayTitle || brand.name}
+        className="absolute inset-0 w-full h-full object-cover object-top scale-105 animate-hero-zoom"
         loading={isPriority ? "eager" : "lazy"}
         fetchpriority={isPriority ? "high" : "auto"}
         onError={(e) => {
@@ -23,29 +29,39 @@ export default function HeroSlide({
         }}
       />
 
-      <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/35 to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/40 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
 
       <div className="relative z-10 h-full max-w-[1400px] mx-auto px-6 sm:px-10 lg:px-16 flex items-end sm:items-center pb-16 sm:pb-0">
         <div className="max-w-xl text-white" data-aos="fade-up">
-          <p className="text-[11px] font-semibold tracking-[0.22em] uppercase text-tz-blue mb-3">
+          <p className="text-[11px] font-semibold tracking-[0.22em] uppercase text-white/70 mb-4">
             {brand.name}
           </p>
-          {title ? (
-            <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-semibold leading-[1.05] tracking-tight">
-              {title}
-            </h1>
-          ) : null}
+          <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold leading-[1.02] tracking-tight">
+            <span className="text-[#E8D5B5]">{displayTitle}</span>
+            {highlight ? (
+              <>
+                <br />
+                <span className="italic font-medium text-white/95 text-[0.85em]">
+                  {highlight}
+                </span>
+              </>
+            ) : null}
+          </h1>
           {subtitle ? (
-            <p className="mt-4 text-sm sm:text-base text-white/80 max-w-md leading-relaxed">
+            <p className="mt-4 text-sm sm:text-base text-white/75 max-w-md leading-relaxed">
               {subtitle}
             </p>
-          ) : null}
+          ) : (
+            <p className="mt-4 text-sm sm:text-base text-white/75 max-w-md leading-relaxed">
+              {brand.about?.heroSubtitle || brand.tagline}
+            </p>
+          )}
           <Link
-            to={ctaLink || "/shop"}
-            className="inline-flex mt-8 items-center gap-2 bg-tz-pink text-white font-semibold text-sm px-7 py-3 hover:bg-tz-blue hover:text-tz-navy transition-colors"
+            to={ctaLink || "/shop?sort=newest"}
+            className="inline-flex mt-8 items-center gap-2 bg-white text-tz-navy font-semibold text-sm px-8 py-3.5 hover:bg-tz-pink hover:text-white transition-colors"
           >
-            {ctaLabel || "Shop the collection"}
+            {ctaLabel || "Shop new arrivals"}
             <span aria-hidden>→</span>
           </Link>
         </div>
