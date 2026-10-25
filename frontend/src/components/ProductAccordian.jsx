@@ -1,21 +1,26 @@
-// src/components/Accordion.jsx
-import React, { useState } from 'react';
-import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import React, { useState } from "react";
+import { FaChevronDown } from "react-icons/fa";
 
-const ProductAccordion = ({ title, children }) => {
-  const [isOpen, setIsOpen] = useState(false);
+const ProductAccordion = ({ title, children, defaultOpen = false }) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className="border-b py-2">
-      <div
-        className="flex justify-between items-center cursor-pointer text-sm md:text-xs xl:text-sm font-medium text-gray-700"
-        onClick={() => setIsOpen(!isOpen)}
+    <div className="border-b border-tz-navy/10">
+      <button
+        type="button"
+        aria-expanded={isOpen}
+        onClick={() => setIsOpen((open) => !open)}
+        className="flex w-full items-center justify-between gap-4 py-4 text-left"
       >
-        <span>{title}</span>
-        {isOpen ? <FaChevronUp /> : <FaChevronDown />}
-      </div>
+        <span className="text-xs font-semibold uppercase tracking-[0.08em] text-tz-navy">
+          {title}
+        </span>
+        <FaChevronDown
+          className={`text-[10px] text-tz-navy/50 transition-transform ${isOpen ? "rotate-180" : ""}`}
+        />
+      </button>
       {isOpen && (
-        <div className="mt-2 text-xs md:text-[10px] xl:text-sm text-gray-700 border-t border-gray-500">
+        <div className="pb-6 text-sm leading-7 text-tz-navy/80">
           {children}
         </div>
       )}

@@ -4,6 +4,34 @@ import HeroSlider from "./HeroSlider";
 import brand from "../brand";
 import * as shopApi from "../api/shopApi";
 
+function brandHeroes() {
+  return (brand.media?.heroes || [])
+    .filter((hero) => hero?.image)
+    .map((hero, index) => ({
+      _id: `brand-hero-${index}`,
+      image: hero.image,
+      title: hero.title || "",
+      highlight: hero.highlight || "",
+      subtitle: hero.subtitle || "",
+      ctaLabel: hero.ctaLabel || "",
+      ctaLink: hero.ctaLink || "/shop",
+      isActive: hero.isActive !== false,
+    }));
+}
+
+function normalizeHero(hero, index) {
+  return {
+    _id: hero._id || hero.id || `hero-${index}`,
+    image: hero.image || "",
+    title: hero.title || "",
+    highlight: hero.highlight || "",
+    subtitle: hero.subtitle || "",
+    ctaLabel: hero.ctaLabel || hero.cta_label || "",
+    ctaLink: hero.ctaLink || hero.cta_link || "/shop",
+    isActive: hero.isActive !== false && hero.active !== false,
+  };
+}
+
 const Banner = () => {
   const [heroes, setHeroes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -12,13 +40,14 @@ const Banner = () => {
     const fetchHeroes = async () => {
       try {
         const data = await shopApi.getHeroBanners();
-        if (data.success && data.heroes) {
-          const list = Array.isArray(data.heroes) ? data.heroes : [];
-          const activeHeroes = list.filter((h) => h.isActive !== false);
-          setHeroes(activeHeroes);
-        }
+        const list = Array.isArray(data?.heroes) ? data.heroes : [];
+        const active = list
+          .map(normalizeHero)
+          .filter((hero) => hero.image && hero.isActive);
+        setHeroes(active.length ? active : brandHeroes());
       } catch (error) {
         console.error("Failed to fetch heroes:", error);
+        setHeroes(brandHeroes());
       } finally {
         setLoading(false);
       }
@@ -49,7 +78,7 @@ const Banner = () => {
         alt={brand.name}
         width={1600}
         height={900}
-        className="absolute inset-0 w-full h-full object-cover object-top animate-hero-zoom"
+        className="absolute inset-0 w-full h-full object-cover object-right animate-hero-zoom"
         fetchPriority="high"
       />
       <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/40 to-transparent pointer-events-none" />

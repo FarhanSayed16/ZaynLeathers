@@ -19,15 +19,15 @@ const fallbackTiles = [
     order: 1,
   },
   {
-    label: "Bags",
-    link: "/shop?department=bags",
-    image: brand.media.categories.bags || brand.media.categories.accessories,
+    label: "Accessories",
+    link: "/shop?department=accessories",
+    image: brand.media.categories.accessories || brand.media.categories.bags,
     order: 2,
   },
   {
-    label: "Accessories",
-    link: "/shop?department=accessories",
-    image: brand.media.categories.accessories,
+    label: "Kids",
+    link: "/shop?department=kids",
+    image: brand.media.categories.kids || brand.media.categories.accessories,
     order: 3,
   },
 ];
@@ -54,7 +54,7 @@ const CategoryTiles = () => {
       <div className="text-center mb-8">
         <Title text1={"Shop by"} text2={"category"} eyebrow="Collections" />
         <p className="text-sm text-tz-navy/50 mt-1" data-aos="fade-up" data-aos-delay="40">
-          Jackets, bags, and leather essentials
+          Jackets, accessories, and leather essentials
         </p>
       </div>
 
@@ -81,7 +81,7 @@ const CategoryTiles = () => {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent" />
             <div className="relative z-10">
-              <h3 className="font-display text-xl sm:text-2xl font-semibold text-white">
+              <h3 className="font-display text-lg sm:text-xl lg:text-2xl leading-tight font-semibold text-white">
                 {cat.label}
               </h3>
               <p className="text-[11px] tracking-[0.16em] uppercase text-tz-blue mt-1 font-semibold">

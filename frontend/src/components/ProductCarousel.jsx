@@ -91,7 +91,7 @@ const ProductCarousel = ({
               {products.map((item) => (
                 <div
                   key={item._id}
-                  className="snap-start shrink-0 w-[42%] xs:w-[38%] sm:w-[30%] md:w-[23%] lg:w-[22%] max-w-[280px]"
+                  className="snap-start shrink-0 w-[calc(50%-0.375rem)] sm:w-[30%] md:w-[23%] lg:w-[22%] max-w-[280px]"
                 >
                   <ProductItem
                     id={item._id}

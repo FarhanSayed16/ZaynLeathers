@@ -8,20 +8,22 @@ import brand from "../brand";
 export default function HeroSlide({
   image,
   title,
+  highlight,
   subtitle,
   ctaLabel,
   ctaLink,
   isPriority,
 }) {
-  const highlight = brand.about?.heroHighlight || "";
   const displayTitle = title || brand.about?.heroTitle || brand.tagline;
+  const displayHighlight =
+    highlight || (title ? "" : brand.about?.heroHighlight || "");
 
   return (
-    <div className="relative min-w-full h-[72vh] sm:h-[78vh] md:h-[85vh] min-h-[420px] max-h-[920px] flex-shrink-0 snap-start overflow-hidden bg-tz-navy">
+    <div className="relative min-w-full h-[70vh] sm:h-[78vh] md:h-[85vh] min-h-[440px] max-h-[640px] sm:max-h-[920px] flex-shrink-0 snap-start overflow-hidden bg-tz-navy">
       <img
         src={image}
         alt={displayTitle || brand.name}
-        className="absolute inset-0 w-full h-full object-cover object-top scale-105 animate-hero-zoom"
+        className="absolute inset-0 w-full h-full object-cover object-[72%_center] sm:object-right scale-105 animate-hero-zoom"
         loading={isPriority ? "eager" : "lazy"}
         fetchpriority={isPriority ? "high" : "auto"}
         onError={(e) => {
@@ -29,21 +31,21 @@ export default function HeroSlide({
         }}
       />
 
-      <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/40 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/25 to-transparent" />
       <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
 
-      <div className="relative z-10 h-full max-w-[1400px] mx-auto px-6 sm:px-10 lg:px-16 flex items-end sm:items-center pb-16 sm:pb-0">
-        <div className="max-w-xl text-white" data-aos="fade-up">
+      <div className="relative z-10 h-full max-w-[1400px] mx-auto px-5 sm:px-10 lg:px-16 flex items-end sm:items-center pb-8 sm:pb-0">
+        <div className="max-w-xl text-white w-full" data-aos="fade-up">
           <p className="text-[11px] font-semibold tracking-[0.22em] uppercase text-white/70 mb-4">
             {brand.name}
           </p>
-          <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold leading-[1.02] tracking-tight">
+          <h1 className="font-display text-[1.85rem] sm:text-5xl md:text-6xl xl:text-7xl font-semibold leading-[1.05] tracking-tight">
             <span className="text-[#E8D5B5]">{displayTitle}</span>
-            {highlight ? (
+            {displayHighlight ? (
               <>
                 <br />
                 <span className="italic font-medium text-white/95 text-[0.85em]">
-                  {highlight}
+                  {displayHighlight}
                 </span>
               </>
             ) : null}

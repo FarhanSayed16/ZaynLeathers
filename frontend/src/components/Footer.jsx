@@ -24,8 +24,9 @@ const Footer = () => {
     { to: "/shop", label: "Shop all" },
     { to: "/shop?department=men", label: "Men" },
     { to: "/shop?department=women", label: "Women" },
-    { to: "/shop?department=bags", label: "Bags" },
-    { to: "/shop?sort=newest", label: "New arrivals" },
+    { to: "/shop?department=accessories", label: "Accessories" },
+    { to: "/shop?department=kids", label: "Kids" },
+    { to: "/shop?category=movie-jackets", label: "Movie jackets" },
     { to: "/custom-jackets", label: "Custom jackets" },
   ];
 

@@ -60,7 +60,12 @@ const App = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-tz-cream text-tz-navy selection:bg-tz-pink/35 selection:text-tz-navy">
-      <ToastContainer position="top-right" autoClose={2000} hideProgressBar />
+      <ToastContainer
+        position="top-center"
+        autoClose={2200}
+        hideProgressBar
+        style={{ top: "4.75rem", width: "min(92vw, 24rem)" }}
+      />
       <ScrollToTop />
 
       <div className="sticky top-0 z-50">
@@ -76,7 +81,7 @@ const App = () => {
             <Route path="/" element={<Home />} />
             <Route path="/shop" element={<Shop />} />
             <Route path="/custom-jackets" element={<CustomJackets />} />
-            <Route path="/totes" element={<Navigate to="/shop?department=bags" replace />} />
+            <Route path="/totes" element={<Navigate to="/shop?department=accessories&category=leather-bags" replace />} />
             <Route path="/accessories" element={<Navigate to="/shop?department=accessories" replace />} />
             <Route path="/mens" element={<Navigate to="/shop?department=men" replace />} />
             <Route path="/womens" element={<Navigate to="/shop?department=women" replace />} />

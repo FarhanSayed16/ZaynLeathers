@@ -31,7 +31,7 @@ const PromoStrip = () => {
   if (!promo?.message) return null;
 
   const inner = (
-    <span className="inline-flex items-center justify-center gap-2 tracking-[0.1em] uppercase font-semibold">
+    <span className="flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 tracking-[0.06em] sm:tracking-[0.1em] uppercase font-semibold text-balance">
       <span>{promo.message}</span>
       {promo.link ? (
         <span className="hidden sm:inline normal-case tracking-wide font-medium opacity-90">
@@ -42,7 +42,7 @@ const PromoStrip = () => {
   );
 
   return (
-    <div className="bg-tz-navy text-white text-[10px] sm:text-[11px] text-center py-1.5 sm:py-2 px-4 leading-none">
+    <div className="bg-tz-navy text-white text-[11px] sm:text-xs text-center py-2 px-3 sm:px-4 leading-snug">
       {promo.link ? (
         <Link to={promo.link} className="hover:opacity-90 transition-opacity">
           {inner}

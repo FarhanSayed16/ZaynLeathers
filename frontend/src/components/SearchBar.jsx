@@ -87,7 +87,7 @@ const SearchBar = () => {
             ref={inputRef}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 outline-none bg-transparent text-sm text-tz-navy placeholder:text-tz-navy/40"
+            className="flex-1 outline-none bg-transparent text-base text-tz-navy placeholder:text-tz-navy/40"
             type="search"
             placeholder="Search jackets, bags, belts…"
             aria-label="Search products"

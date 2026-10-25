@@ -18,7 +18,10 @@ const FALLBACK_NAV = [
   { name: "Men", label: "Men", path: "/shop?department=men", mega: "men" },
   { name: "New Arrivals", label: "New Arrivals", path: "/shop?sort=newest" },
   { name: "Women", label: "Women", path: "/shop?department=women", mega: "women" },
-  { name: "Custom Leather Jackets", label: "Custom Leather Jackets", path: "/custom-jackets", highlight: true },
+  { name: "Accessories", label: "Accessories", path: "/shop?department=accessories", mega: "accessories" },
+  { name: "Kids", label: "Kids", path: "/shop?department=kids" },
+  { name: "Movie Jackets", label: "Movie Jackets", path: "/shop?category=movie-jackets" },
+  { name: "Custom Leather Jackets", label: "Custom Leather Jackets", short: "Custom", path: "/custom-jackets", highlight: true },
   { name: "Contact", label: "Contact Us", path: "/contact" },
 ];
 
@@ -35,7 +38,8 @@ function isNavActive(linkPath, location) {
   const linkCat = params.get("category");
   const linkSort = params.get("sort");
   const locParams = new URLSearchParams(location.search);
-  const locDept = locParams.get("department");
+  let locDept = locParams.get("department");
+  if (String(locDept).toLowerCase() === "bags") locDept = "accessories";
   const locCat = locParams.get("category");
   const locSort = locParams.get("sort");
 
@@ -170,18 +174,20 @@ const Navbar = () => {
   };
 
   const getMegaColumns = (megaKey) => {
-    const fallback = brand.catalog?.megaMenu?.[megaKey] || [];
+    // Brand megaMenu is taxonomy SSOT (incl. Shop by colour columns)
+    const brandMega = brand.catalog?.megaMenu?.[megaKey] || [];
+    if (brandMega.length) return brandMega;
     const dept = departments.find(
       (d) => d.slug === megaKey || d.name?.toLowerCase() === megaKey
     );
-    return buildMegaColumns(dept, fallback);
+    return buildMegaColumns(dept, []);
   };
 
   const iconBtn =
     "inline-flex items-center justify-center w-9 h-9 rounded-sm text-tz-navy/80 hover:text-tz-navy hover:bg-gray-100 transition-colors";
 
   const linkClass = (active, highlight) =>
-    `relative inline-flex items-center gap-1 px-2 xl:px-2.5 py-1.5 text-[10px] xl:text-[11px] font-semibold uppercase tracking-[0.07em] transition-colors whitespace-nowrap ${
+    `relative inline-flex items-center gap-1 px-1.5 xl:px-2.5 py-1.5 text-[10px] xl:text-[11px] font-semibold uppercase tracking-[0.04em] xl:tracking-[0.07em] transition-colors whitespace-nowrap ${
       highlight
         ? active
           ? "text-tz-navy underline underline-offset-[5px] decoration-2"
@@ -222,7 +228,14 @@ const Navbar = () => {
                 }
               }}
             >
-              {link.label}
+              {link.short ? (
+                <>
+                  <span className="xl:hidden">{link.short}</span>
+                  <span className="hidden xl:inline">{link.label}</span>
+                </>
+              ) : (
+                link.label
+              )}
               <FaChevronDown size={8} className="opacity-50" aria-hidden />
               {(active || openMega === link.mega) && (
                 <span className="absolute left-1.5 right-1.5 bottom-0 h-[2px] bg-tz-navy" />
@@ -236,9 +249,18 @@ const Navbar = () => {
         <NavLink
           key={link.path + link.label}
           to={link.path}
-          className={linkClass(active, link.highlight)}
+          className={`${linkClass(active, link.highlight)} ${
+            link.path === "/contact" ? "max-xl:hidden" : ""
+          }`}
         >
-          {link.label}
+          {link.short ? (
+            <>
+              <span className="xl:hidden">{link.short}</span>
+              <span className="hidden xl:inline">{link.label}</span>
+            </>
+          ) : (
+            link.label
+          )}
           {active ? (
             <span className="absolute left-1.5 right-1.5 bottom-0 h-[2px] bg-tz-navy" />
           ) : null}
@@ -267,7 +289,7 @@ const Navbar = () => {
               <BrandMark className={scrolled ? "h-7" : "h-8"} compact={scrolled} />
             </Link>
 
-            <nav className="flex-1 flex items-center justify-center gap-0 min-w-0 overflow-visible">
+            <nav className="flex-1 flex items-center justify-start xl:justify-center gap-0 min-w-0 overflow-x-auto no-scrollbar">
               {renderNavLinks()}
             </nav>
 
@@ -409,20 +431,22 @@ const Navbar = () => {
               </button>
               <Link
                 to="/cart"
-                className={`${iconBtn} relative !w-auto !px-2 gap-1.5`}
+                className={`${iconBtn} !w-auto !px-2 gap-1.5`}
                 aria-label={`Cart ${cartCount} items, ${cartTotal}`}
               >
-                <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor" aria-hidden>
-                  <path d="M7 4h-2l-1 2H1v2h2l3.6 7.59-1.35 2.44A1 1 0 0 0 6 20h12v-2H7.42a.25.25 0 0 1-.22-.37L8.1 15h7.45a1 1 0 0 0 .92-.62L19 7H6.21l-.94-2zM8 21a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm9 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z" />
-                </svg>
+                <span className="relative inline-flex">
+                  <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor" aria-hidden>
+                    <path d="M7 4h-2l-1 2H1v2h2l3.6 7.59-1.35 2.44A1 1 0 0 0 6 20h12v-2H7.42a.25.25 0 0 1-.22-.37L8.1 15h7.45a1 1 0 0 0 .92-.62L19 7H6.21l-.94-2zM8 21a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm9 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z" />
+                  </svg>
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1.5 -right-2 min-w-[14px] h-3.5 px-1 rounded-sm bg-tz-navy text-white text-[9px] font-bold flex items-center justify-center">
+                      {cartCount}
+                    </span>
+                  )}
+                </span>
                 {cartCount > 0 && (
                   <span className="text-[11px] font-semibold tabular-nums max-w-[4.5rem] truncate">
                     {cartTotal}
-                  </span>
-                )}
-                {cartCount > 0 && (
-                  <span className="absolute top-0.5 right-0.5 min-w-[14px] h-3.5 px-1 rounded-sm bg-tz-navy text-white text-[9px] font-bold flex items-center justify-center">
-                    {cartCount}
                   </span>
                 )}
               </Link>

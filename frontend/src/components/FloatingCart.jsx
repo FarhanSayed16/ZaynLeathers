@@ -21,7 +21,7 @@ const FloatingCart = () => {
     <Link
       to="/cart"
       aria-label={`Cart, ${cartCount} items, ${amount}`}
-      className="fixed bottom-6 right-4 sm:right-6 z-40 min-w-12 h-12 px-3 rounded-sm bg-white border border-gray-200 shadow-md text-tz-navy flex items-center justify-center gap-2 hover:bg-tz-navy hover:text-white transition-colors"
+      className="hidden lg:flex fixed bottom-6 right-6 z-40 min-w-12 h-12 px-3 rounded-sm bg-white border border-gray-200 shadow-md text-tz-navy items-center justify-center gap-2 hover:bg-tz-navy hover:text-white transition-colors"
     >
       <span className="relative inline-flex">
         <FaShoppingBag size={16} />

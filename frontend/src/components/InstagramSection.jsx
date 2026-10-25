@@ -27,13 +27,16 @@ const InstagramSection = () => {
     }
   };
 
-  const fallbackGallery = (brand.media?.instagramFallback || []).map((image, i) => ({
-    _id: `fallback-${i}`,
-    image,
-    caption: brand.shortName || brand.name,
-    instagramLink: brand.social.instagram || '#',
-    productLink: '/shop',
-  }));
+  const fallbackGallery = (brand.media?.instagramFallback || []).map((entry, i) => {
+    const item = typeof entry === 'string' ? { image: entry } : entry || {};
+    return {
+      _id: `fallback-${i}`,
+      image: item.image || '',
+      caption: item.caption || brand.shortName || brand.name,
+      instagramLink: item.instagramLink || brand.social.instagram || '#',
+      productLink: item.productLink || '/shop',
+    };
+  });
 
   const displayPromos = promos.length > 0 ? promos : fallbackGallery;
 
@@ -48,7 +51,7 @@ const InstagramSection = () => {
       </div>
 
       <div className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
           {displayPromos.map((promo) => (
             <div
               key={promo._id}
@@ -61,7 +64,7 @@ const InstagramSection = () => {
                 height={400}
                 loading="lazy"
                 decoding="async"
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                className="w-full h-full object-cover object-[center_22%] transition-transform duration-500 group-hover:scale-105"
                 onError={(e) => {
                   e.currentTarget.src = brand.media.placeholder;
                 }}
