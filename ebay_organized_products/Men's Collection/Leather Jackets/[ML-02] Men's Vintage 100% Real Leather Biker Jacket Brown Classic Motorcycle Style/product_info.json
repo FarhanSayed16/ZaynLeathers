@@ -1,0 +1,52 @@
+{
+  "item_id": "306362553942",
+  "sku": "ML-02",
+  "title": "Men's Vintage 100% Real Leather Biker Jacket Brown Classic Motorcycle Style",
+  "department": "Men's Collection",
+  "subcategory": "Leather Jackets",
+  "price_usd": 199.99,
+  "ebay_category": "Coats, Jackets & Vests",
+  "sizes": [
+    "XS, S, M, L, XL, 2XL, 3XL, 4XL",
+    "XS|Size Type=Regular",
+    "S|Size Type=Regular",
+    "M|Size Type=Regular",
+    "L|Size Type=Regular",
+    "XL|Size Type=Regular",
+    "2XL|Size Type=Regular",
+    "3XL|Size Type=Regular",
+    "4XL|Size Type=Regular"
+  ],
+  "variation_skus": [
+    "ML_02_Re_XS",
+    "ML_02_Re_S",
+    "ML_02_Re_M",
+    "ML_02_Re_L",
+    "ML_02_Re_XL",
+    "ML_02_Re_2X",
+    "ML_02_Re_3X",
+    "ML_02_Re_4X"
+  ],
+  "ebay_url": "https://www.ebay.com/itm/306362553942",
+  "primary_image": "01_main.jpg",
+  "images": [
+    "01_main.jpg",
+    "02.jpg",
+    "03.jpg",
+    "04.jpg",
+    "05.jpg",
+    "06.jpg",
+    "07.jpg",
+    "08.jpg"
+  ],
+  "image_urls": [
+    "https://i.ebayimg.com/images/g/BtYAAOSw~HdoVr2b/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/Q3MAAOSwTPdoVr2b/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/-UYAAOSwF~BoVr2c/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/jY4AAOSwzbpoVr3K/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/QC8AAOSwxOdoVr2s/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/qDAAAOSw-XxoVr5m/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/RDgAAOSwH5hoVr3F/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/ZWkAAOSwgUJoVr2t/s-l1600.jpg"
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "item_id": "306362245707",
+  "sku": "WL-04",
+  "title": "Women's Oversized Bomber Real Leather Jacket Brown Drop Shoulders Relaxed Jacket",
+  "department": "Women's Collection",
+  "subcategory": "Leather Jackets",
+  "price_usd": 199.99,
+  "ebay_category": "Coats, Jackets & Vests",
+  "sizes": [
+    "S, M, L, XL, 2XL, 3XL",
+    "S",
+    "M",
+    "L",
+    "XL",
+    "2XL",
+    "3XL"
+  ],
+  "variation_skus": [
+    "WS_03_S",
+    "WS_03_M",
+    "WS_03_L",
+    "WS_03_XL",
+    "WS_03_2X",
+    "WS_03_3X"
+  ],
+  "ebay_url": "https://www.ebay.com/itm/306362245707",
+  "primary_image": "01_main.jpg",
+  "images": [
+    "01_main.jpg",
+    "02.jpg",
+    "03.jpg",
+    "04.jpg",
+    "05.jpg",
+    "06.jpg",
+    "07.jpg",
+    "08.jpg",
+    "09.jpg",
+    "10.jpg"
+  ],
+  "image_urls": [
+    "https://i.ebayimg.com/images/g/BoAAAOSwEA5oVpBz/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/9sAAAOSwoMVoVpCl/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/b8EAAOSwnWVoVpCT/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/A7QAAOSwRJ5oVpDB/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/Pc0AAOSwjiJoVpCB/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/G-IAAOSw1ydoVpDK/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/hIAAAOSwDM5oUrk~/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/UScAAOSwQ3RoUrlK/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/ghcAAOSwccBoUrlA/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/hloAAOSw4gNoUrlA/s-l1600.jpg"
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "item_id": "306355932726",
+  "sku": "MS-06",
+  "title": "Men's Vintage Suede Leather Jacket Beige Trim Cargo Pockets Barn Classic Coat",
+  "department": "Men's Collection",
+  "subcategory": "Suede Jackets & Shirts",
+  "price_usd": 199.99,
+  "ebay_category": "Coats, Jackets & Vests",
+  "sizes": [
+    "XS, S, M, L, XL, 2XL, 3XL, 4XL",
+    "XS|Size Type=Regular",
+    "S|Size Type=Regular",
+    "M|Size Type=Regular",
+    "L|Size Type=Regular",
+    "XL|Size Type=Regular",
+    "2XL|Size Type=Regular",
+    "3XL|Size Type=Regular",
+    "4XL|Size Type=Regular"
+  ],
+  "variation_skus": [
+    "MS_06_XS",
+    "MS_06_S",
+    "MS_06_M",
+    "MS_06_L",
+    "MS_06_XL",
+    "MS_06_2XL",
+    "MS_06_3XL",
+    "MS_06_4XL"
+  ],
+  "ebay_url": "https://www.ebay.com/itm/306355932726",
+  "primary_image": "01_main.jpg",
+  "images": [
+    "01_main.jpg",
+    "02.jpg",
+    "03.jpg",
+    "04.jpg",
+    "05.jpg",
+    "06.jpg",
+    "07.jpg",
+    "08.jpg"
+  ],
+  "image_urls": [
+    "https://i.ebayimg.com/images/g/wFgAAeSwDDdqV8gN/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/5Y0AAeSwRTtqV8gP/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/PM8AAOSw5NNoUTPq/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/jp4AAOSw~0FoUTPr/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/mEkAAOSwxOpoUTP6/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/v~gAAOSwVn9oUTQe/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/~IUAAOSwthpoUTQJ/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/DQMAAOSwBGFoUTP7/s-l1600.jpg"
+  ]
+}

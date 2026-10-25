@@ -1,0 +1,14 @@
+{
+  "total_products": 19,
+  "total_images": 195,
+  "catalog_excel": "d:\\Leather Scrapper\\ebay_organized_products\\eBay_Products_Catalog.xlsx",
+  "departments": [
+    "Men's Collection",
+    "Women's Collection"
+  ],
+  "subcategories": [
+    "Suede Jackets & Shirts",
+    "Leather Jackets",
+    "Suede & Wool Jackets"
+  ]
+}

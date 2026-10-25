@@ -1,0 +1,54 @@
+{
+  "item_id": "306357863648",
+  "sku": "MS-07",
+  "title": "Men's Green Suede Leather Jacket Bomber Style Classic Custom Size S - 3XL Jacket",
+  "department": "Men's Collection",
+  "subcategory": "Suede Jackets & Shirts",
+  "price_usd": 210.0,
+  "ebay_category": "Coats, Jackets & Vests",
+  "sizes": [
+    "XS, S, M, L, XL, 2XL, 3XL, 4XL",
+    "XS",
+    "S",
+    "M",
+    "L",
+    "XL",
+    "2XL",
+    "3XL",
+    "4XL"
+  ],
+  "variation_skus": [
+    "MS_07_XS",
+    "MS_07_S",
+    "MS_07_M",
+    "MS_07_L",
+    "MS_07_XL",
+    "MS_07_2X",
+    "MS_07_3X",
+    "MS_07_4X"
+  ],
+  "ebay_url": "https://www.ebay.com/itm/306357863648",
+  "primary_image": "01_main.jpg",
+  "images": [
+    "01_main.jpg",
+    "02.jpg",
+    "03.jpg",
+    "04.jpg",
+    "05.jpg",
+    "06.jpg",
+    "07.jpg",
+    "08.jpg",
+    "09.jpg"
+  ],
+  "image_urls": [
+    "https://i.ebayimg.com/images/g/oAIAAOSwhn5oUqWx/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/kNcAAOSwRRZoUqV2/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/EZQAAOSw22doUqXD/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/5SYAAOSwF7poUqXN/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/YtYAAOSwJSFoTZQ8/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/JeAAAOSwBuFoToVe/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/~2AAAOSwDjVoUqWL/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/N5EAAOSwtUtoTonJ/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/dLwAAOSwujpoUqWH/s-l1600.jpg"
+  ]
+}

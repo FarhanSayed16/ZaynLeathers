@@ -1,0 +1,54 @@
+{
+  "item_id": "306352817754",
+  "sku": "MS-03",
+  "title": "Men's Black Suede Leather Jacket Trucker Classic Vintage Durable Coat Jacket",
+  "department": "Men's Collection",
+  "subcategory": "Suede Jackets & Shirts",
+  "price_usd": 210.0,
+  "ebay_category": "Coats, Jackets & Vests",
+  "sizes": [
+    "XS, S, M, L, XL, 2XL, 3XL, 4XL",
+    "XS",
+    "S",
+    "M",
+    "L",
+    "XL",
+    "2XL",
+    "3XL",
+    "4XL"
+  ],
+  "variation_skus": [
+    "MS_03_XS",
+    "MS_03_S",
+    "MS_03_M",
+    "MS_03_L",
+    "MS_03_XL",
+    "MS_03_2X",
+    "MS_03_3X",
+    "MS_03_4X"
+  ],
+  "ebay_url": "https://www.ebay.com/itm/306352817754",
+  "primary_image": "01_main.jpg",
+  "images": [
+    "01_main.jpg",
+    "02.jpg",
+    "03.jpg",
+    "04.jpg",
+    "05.jpg",
+    "06.jpg",
+    "07.jpg",
+    "08.jpg",
+    "09.jpg"
+  ],
+  "image_urls": [
+    "https://i.ebayimg.com/images/g/EjMAAeSw9HxqV72D/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/SOsAAeSwdbtqV72V/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/9o0AAeSwYaxqV72S/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/QmIAAOSwEwZoToJm/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/smIAAOSwg05oToJm/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/FukAAOSwgCpoToJm/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/YtYAAOSwJSFoTZQ8/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/kjAAAOSwo3FoTZQ8/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/XKcAAOSwnzhoTZOS/s-l1600.jpg"
+  ]
+}

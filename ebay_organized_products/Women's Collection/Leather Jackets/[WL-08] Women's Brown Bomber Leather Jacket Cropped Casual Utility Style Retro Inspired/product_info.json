@@ -1,0 +1,56 @@
+{
+  "item_id": "306363731139",
+  "sku": "WL-08",
+  "title": "Women's Brown Bomber Leather Jacket Cropped Casual Utility Style Retro Inspired",
+  "department": "Women's Collection",
+  "subcategory": "Leather Jackets",
+  "price_usd": 199.99,
+  "ebay_category": "Coats, Jackets & Vests",
+  "sizes": [
+    "XS, S, M, L, XL, 2XL, 3XL, 4XL",
+    "XS|Size Type=Regular",
+    "S|Size Type=Regular",
+    "M|Size Type=Regular",
+    "L|Size Type=Regular",
+    "XL|Size Type=Regular",
+    "2XL|Size Type=Regular",
+    "3XL|Size Type=Regular",
+    "4XL|Size Type=Regular"
+  ],
+  "variation_skus": [
+    "WL_08_Re_XS",
+    "WL_08_Re_S",
+    "WL_08_Re_M",
+    "WL_08_Re_L",
+    "WL_08_Re_XL",
+    "WL_07_Re_2X",
+    "WL_07_Re_3X",
+    "WL_07_Re_4X"
+  ],
+  "ebay_url": "https://www.ebay.com/itm/306363731139",
+  "primary_image": "01_main.jpg",
+  "images": [
+    "01_main.jpg",
+    "02.jpg",
+    "03.jpg",
+    "04.jpg",
+    "05.jpg",
+    "06.jpg",
+    "07.jpg",
+    "08.jpg",
+    "09.jpg",
+    "10.jpg"
+  ],
+  "image_urls": [
+    "https://i.ebayimg.com/images/g/N5cAAeSwWxhoWAqo/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/qj8AAOSwZCdoV~BG/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/eDYAAOSwesdoV~BG/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/wp4AAOSwmoVoV~BH/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/eQcAAOSwnRpoV~BH/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/gDUAAOSwvHFoUq8h/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/eyUAAOSw11hoUq8q/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/uuEAAOSwOhZoUq8i/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/K-sAAOSwgfRoUq8f/s-l1600.jpg",
+    "https://i.ebayimg.com/images/g/nPMAAOSwV3poUq8h/s-l1600.jpg"
+  ]
+}
