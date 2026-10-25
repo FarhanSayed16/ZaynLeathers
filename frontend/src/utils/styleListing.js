@@ -8,7 +8,10 @@ export function pickPrimaryVariant(variants, options = {}) {
   const pool = active.length ? active : variants;
 
   if (preferredColors.length) {
-    const match = pool.find((v) => preferredColors.includes(v.color));
+    const preferred = preferredColors.map((c) => String(c).toLowerCase());
+    const match = pool.find((v) =>
+      preferred.includes(String(v.color || "").toLowerCase())
+    );
     if (match) return match;
   }
 

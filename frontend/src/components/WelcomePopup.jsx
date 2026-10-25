@@ -17,7 +17,7 @@ const AUTH_PATHS = [
 
 /**
  * Phase D — first-visit welcome / gift capture popup.
- * Split layout: lifestyle image | form (reference: Popup_at_start).
+ * Split layout: brand image beside the signup form.
  */
 const WelcomePopup = () => {
   const location = useLocation();
@@ -120,7 +120,9 @@ const WelcomePopup = () => {
     cfg.image ||
     brand.media?.lifestyle?.[0] ||
     brand.media?.heroes?.[0]?.image ||
-    brand.media?.instagramFallback?.[0] ||
+    (typeof brand.media?.instagramFallback?.[0] === "string"
+      ? brand.media.instagramFallback[0]
+      : brand.media?.instagramFallback?.[0]?.image) ||
     brand.media?.placeholder;
 
   const modal = (

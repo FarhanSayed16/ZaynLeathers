@@ -73,7 +73,7 @@ const ShopContextProvider = (props) => {
   );
 
   const addToCart = useCallback(
-    async (itemId, size) => {
+    async (itemId, size, options = {}) => {
       if (!size) {
         toast.error("Please select the Product Size");
         return;
@@ -81,10 +81,11 @@ const ShopContextProvider = (props) => {
 
       const next = bumpCart(cartItems, itemId, size);
       setCartItems(next);
+      const quiet = options.silent === true;
 
       if (!token) {
         writeGuestCart(next);
-        toast.success("Added to cart");
+        if (!quiet) toast.success("Added to cart");
         return;
       }
 
@@ -92,7 +93,7 @@ const ShopContextProvider = (props) => {
         const response = await shopApi.addToCart(itemId, size, token);
         if (response.success) {
           if (response.cartData) setCartItems(response.cartData);
-          toast.success("Added to cart");
+          if (!quiet) toast.success("Added to cart");
         } else {
           if (!handleAuthError(response, response.status)) {
             toast.error(response.message || "Could not add to cart");

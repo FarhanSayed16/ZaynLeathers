@@ -11,7 +11,6 @@ import ReviewSection from '../components/ReviewSection'
 import { motion, AnimatePresence } from 'framer-motion'
 import brand from '../brand'
 import { productGallery, productThumb } from '../utils/cloudinary'
-import Breadcrumbs from '../components/Breadcrumbs'
 import RecentlyViewed from '../components/RecentlyViewed'
 import { pushRecentlyViewed } from '../utils/recentlyViewed'
 import SEO from '../components/SEO'
@@ -22,10 +21,11 @@ import {
   getTotalStock,
   isSizeInStock,
 } from '../utils/productMatrix'
+import { plainProductText, productCopyBlocks } from '../utils/productCopy'
 
 const Products = () => {
   const { productId } = useParams()
-  const { products, formatPrice, addToCart, navigate } = useContext(ShopContext)
+  const { products, formatPrice, addToCart, navigate, settings } = useContext(ShopContext)
   const [productData, setProductData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -133,7 +133,7 @@ const Products = () => {
       toast.error('Selected size is out of stock')
       return
     }
-    addToCart(productData._id, size || 'Standard')
+    addToCart(productData._id, size || 'Standard', { silent: true })
     setShowAddToCartPopup(true)
 
     setTimeout(() => setShowAddToCartPopup(false), 3000)
@@ -251,48 +251,38 @@ const Products = () => {
     )
   }
 
+  const freeShipAt = Number(settings?.freeShippingThreshold) || 2999
+  const copyBlocks = productCopyBlocks(productData.description, productData.name)
+  const detailRows = [
+    productData.sku ? ["SKU", productData.sku] : null,
+    productData.color ? ["Colour", productData.color] : null,
+    productData.material ? ["Material", productData.material] : null,
+    productData.sizes?.length ? ["Sizes", productData.sizes.join(", ")] : null,
+  ].filter(Boolean)
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="min-h-screen bg-tz-cream pb-10"
+      className="min-h-screen bg-tz-cream pb-28 lg:pb-10"
     >
       <SEO
         title={productData.seoTitle || productData.name}
         description={
-          productData.description
-            ? String(productData.description).slice(0, 160)
-            : `${productData.name} — shop at ${brand.name}.`
+          plainProductText(productData.description, productData.name).slice(0, 160)
+          || `${productData.name} — shop at ${brand.name}.`
         }
       />
-      {/* Mobile Header */}
-      <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-gray-100 px-4 py-3 flex items-center justify-between lg:hidden">
-        <motion.button
-          whileTap={{ scale: 0.9 }}
+      <div className="pt-3 sm:pt-6 lg:pt-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pb-24 lg:pb-0">
+        <button
+          type="button"
           onClick={() => navigateBack(-1)}
-          className="p-1 -ml-1"
+          className="lg:hidden mb-3 inline-flex items-center gap-0.5 text-sm font-medium text-tz-navy/70"
         >
-          <MdKeyboardArrowLeft className="text-2xl" />
-        </motion.button>
-        <h1 className="font-bold text-lg tracking-tighter">{brand.shortName.toUpperCase()}</h1>
-        <div className="w-8" />
-      </div>
-
-      <div className="pt-4 sm:pt-6 lg:pt-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pb-20 lg:pb-0">
-        <Breadcrumbs
-          items={[
-            { label: 'Home', to: '/' },
-            { label: 'Shop', to: '/shop' },
-            productData.department
-              ? {
-                  label: productData.department.replace(/-/g, ' '),
-                  to: `/shop?department=${encodeURIComponent(productData.department)}`,
-                }
-              : null,
-            { label: productData.name },
-          ].filter(Boolean)}
-        />
+          <MdKeyboardArrowLeft className="text-2xl -ml-1" />
+          Back
+        </button>
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -300,43 +290,10 @@ const Products = () => {
           className='flex flex-col lg:flex-row gap-6 lg:gap-10'
         >
           {/* Product Images Section */}
-          <motion.div variants={itemVariants} className='flex-1 min-w-0'>
-            <div className='flex flex-col-reverse lg:flex-row gap-3 lg:gap-4'>
-              {productData.image && productData.image.length > 0 && (
-                <div
-                  className='flex lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto pb-1 lg:pb-0 no-scrollbar lg:max-h-[560px]'
-                  role="listbox"
-                  aria-label="Product images"
-                >
-                  {productData.image.map((item, index) => (
-                    <button
-                      key={item || index}
-                      type="button"
-                      role="option"
-                      aria-selected={image === item}
-                      onClick={() => setImage(item)}
-                      className={`shrink-0 border-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-tz-navy ${
-                        image === item
-                          ? 'border-tz-navy'
-                          : 'border-transparent hover:border-gray-300'
-                      }`}
-                    >
-                      <img
-                        src={productThumb(item)}
-                        alt={productData.imageAlt || `Product view ${index + 1}`}
-                        width={80}
-                        height={80}
-                        loading="lazy"
-                        decoding="async"
-                        className="w-16 h-16 lg:w-[72px] lg:h-[72px] object-cover block"
-                      />
-                    </button>
-                  ))}
-                </div>
-              )}
-
+          <motion.div variants={itemVariants} className='flex-1 min-w-0 lg:sticky lg:top-24 lg:self-start'>
+            <div className='flex flex-col gap-3'>
               <div
-                className='relative flex-1 overflow-hidden bg-gray-50 aspect-[4/5] lg:aspect-auto lg:min-h-[520px]'
+                className='relative overflow-hidden bg-gray-50 aspect-[4/5]'
                 onTouchStart={onTouchStart}
                 onTouchMove={onTouchMove}
                 onTouchEnd={onTouchEnd}
@@ -381,13 +338,45 @@ const Products = () => {
                   </>
                 )}
               </div>
+              {productData.image && productData.image.length > 0 && (
+                <div
+                  className='flex gap-2 overflow-x-auto no-scrollbar pb-1'
+                  role="listbox"
+                  aria-label="Product images"
+                >
+                  {productData.image.map((item, index) => (
+                    <button
+                      key={item || index}
+                      type="button"
+                      role="option"
+                      aria-selected={image === item}
+                      onClick={() => setImage(item)}
+                      className={`shrink-0 border-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-tz-navy ${
+                        image === item
+                          ? 'border-tz-navy'
+                          : 'border-transparent hover:border-gray-300'
+                      }`}
+                    >
+                      <img
+                        src={productThumb(item)}
+                        alt={productData.imageAlt || `Product view ${index + 1}`}
+                        width={80}
+                        height={80}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-16 h-16 lg:w-[72px] lg:h-[72px] object-cover block"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </motion.div>
 
           {/* Sticky buy box */}
           <motion.div
             variants={itemVariants}
-            className='flex-1 space-y-5 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:pb-4'
+            className='flex-1 min-w-0 space-y-5'
           >
             {/* Category and Name */}
             <div>
@@ -426,31 +415,37 @@ const Products = () => {
 
             {/* Material & details */}
             {(productData.material || productData.dimensions || productData.department) && (
-              <motion.div variants={itemVariants} className="border border-tz-pink/15 bg-tz-cream/60 px-4 py-3 space-y-1.5">
+              <motion.div variants={itemVariants} className="grid grid-cols-2 gap-px bg-tz-navy/10 border border-tz-navy/10">
                 {productData.department && (
-                  <p className="text-xs text-tz-navy/70">
-                    <span className="font-semibold text-tz-navy uppercase tracking-wider text-[10px]">Department</span>
-                    <span className="ml-2 capitalize">{productData.department.replace(/-/g, " ")}</span>
-                    {productData.category ? <span className="text-tz-navy/40"> · {productData.category}</span> : null}
-                  </p>
+                  <div className="bg-white px-3.5 py-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-tz-navy/45">Department</p>
+                    <p className="mt-1 text-sm text-tz-navy capitalize leading-snug">
+                      {productData.department.replace(/-/g, " ")}
+                      {productData.category &&
+                      productData.category.replace(/-/g, " ").toLowerCase() !==
+                        String(productData.department).replace(/-/g, " ").toLowerCase() ? (
+                        <span className="text-tz-navy/55"> · {String(productData.category).replace(/-/g, " ")}</span>
+                      ) : null}
+                    </p>
+                  </div>
                 )}
                 {productData.material && (
-                  <p className="text-xs text-tz-navy/70">
-                    <span className="font-semibold text-tz-navy uppercase tracking-wider text-[10px]">Material</span>
-                    <span className="ml-2">{productData.material}</span>
-                  </p>
+                  <div className="bg-white px-3.5 py-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-tz-navy/45">Material</p>
+                    <p className="mt-1 text-sm text-tz-navy leading-snug">{productData.material}</p>
+                  </div>
                 )}
-                {productData.dimensions && (
-                  <p className="text-xs text-tz-navy/70">
-                    <span className="font-semibold text-tz-navy uppercase tracking-wider text-[10px]">Dimensions</span>
-                    <span className="ml-2">{productData.dimensions}</span>
-                  </p>
+                {typeof productData.dimensions === "string" && productData.dimensions && (
+                  <div className="bg-white px-3.5 py-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-tz-navy/45">Dimensions</p>
+                    <p className="mt-1 text-sm text-tz-navy leading-snug">{productData.dimensions}</p>
+                  </div>
                 )}
                 {productData.gender && (
-                  <p className="text-xs text-tz-navy/70">
-                    <span className="font-semibold text-tz-navy uppercase tracking-wider text-[10px]">Fit</span>
-                    <span className="ml-2 capitalize">{productData.gender}</span>
-                  </p>
+                  <div className="bg-white px-3.5 py-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-tz-navy/45">Fit</p>
+                    <p className="mt-1 text-sm text-tz-navy capitalize leading-snug">{productData.gender}</p>
+                  </div>
                 )}
               </motion.div>
             )}
@@ -458,7 +453,7 @@ const Products = () => {
             {/* Size Selection */}
             {productData.sizes && productData.sizes.length > 0 && (
               <div className='space-y-3'>
-                <div className='flex items-center justify-between gap-3'>
+                <div className='flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3'>
                   <p className='font-semibold text-sm text-tz-navy'>
                     Size
                     {size ? (
@@ -467,7 +462,7 @@ const Products = () => {
                       <span className="ml-2 font-normal text-tz-pink">Select one</span>
                     )}
                   </p>
-                  <span className="text-[11px] text-tz-navy/45 shrink-0">
+                  <span className="text-xs text-tz-navy/50 leading-relaxed">
                     {productData.department === 'bags' ? 'See size / capacity below' : 'True to size for leather'}
                   </span>
                 </div>
@@ -545,8 +540,19 @@ const Products = () => {
                 Need a custom fit?
                 <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
               </Link>
+              {brand.contact.whatsappUrl ? (
+                <a
+                  href={`${brand.contact.whatsappUrl}?text=${encodeURIComponent(`Hi, I have a question about ${productData.name}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-1.5 text-sm text-tz-navy/80 hover:text-tz-navy"
+                >
+                  <FaWhatsapp size={15} />
+                  Chat on WhatsApp · {brand.contact.whatsapp}
+                </a>
+              ) : null}
               <p className="text-[11px] text-tz-navy/50 text-center">
-                Cash on delivery · Easy 7-day returns · Free shipping above {formatPrice(999)}
+                Cash on delivery · Easy 7-day returns · Free shipping above {formatPrice(freeShipAt)}
               </p>
             </div>
 
@@ -594,81 +600,78 @@ const Products = () => {
                 ) : null}
               </div>
             </motion.div>
-          </motion.div>
-        </motion.div>
 
-        {/* Product Accordions */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className='mt-8'
-        >
-          {productData.description && (
-            <ProductAccordion title="DESCRIPTION / DETAILS">
-              <motion.div variants={itemVariants} className="space-y-2">
-                {productData.description
-                  .split('.')
-                  .filter(sentence => sentence.trim().length > 0)
-                  .map((sentence, index) => (
-                    <motion.p
-                      key={index}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className='text-gray-600 text-sm'
-                    >
-                      • {sentence.trim()}.
-                    </motion.p>
+            <div className="border-t border-tz-navy/10">
+              <ProductAccordion title="Description" defaultOpen>
+                <div className="space-y-3">
+                  {copyBlocks.map((block, index) =>
+                    block.type === "ul" ? (
+                      <ul key={index} className="space-y-1.5">
+                        {block.items.map((item) => (
+                          <li key={item} className="flex gap-2">
+                            <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-tz-navy/40" />
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p key={index}>{block.text}</p>
+                    )
+                  )}
+                  {detailRows.length > 0 && (
+                    <dl className="mt-4 border border-tz-navy/10 bg-white">
+                      {detailRows.map(([label, value]) => (
+                        <div key={label} className="grid grid-cols-[5.5rem_1fr] gap-3 px-3.5 py-3 border-b border-tz-navy/10 last:border-b-0">
+                          <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-tz-navy/45 pt-0.5">
+                            {label}
+                          </dt>
+                          <dd className="text-sm text-tz-navy leading-relaxed">{value}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  )}
+                </div>
+              </ProductAccordion>
+
+              <ProductAccordion title="Size guide">
+                <div className="space-y-2">
+                  {productData.department === 'bags' ? (
+                    <>
+                      <p>Bag sizes are listed as approximate outer dimensions on the product (H × W × D).</p>
+                      <p>Laptop bags: match the listed laptop size. Crossbody and slings fit daily essentials, not a 15" laptop unless stated.</p>
+                    </>
+                  ) : productData.department === 'accessories' ? (
+                    <>
+                      <p>Belts: measure your usual waist over trousers, or pick the size that matches your jean waist.</p>
+                      <p>Wallets: one size unless noted.</p>
+                    </>
+                  ) : (
+                    <>
+                      <p>Leather jackets are cut true to size. If you are between sizes, size up for a layer underneath.</p>
+                      <p>Chest: measure around the fullest part. Compare with the size chart on the garment label when delivered.</p>
+                      <p>Indian sizes: S 36–38" chest · M 38–40" · L 40–42" · XL 42–44" · XXL 44–46" (approx.).</p>
+                    </>
+                  )}
+                </div>
+              </ProductAccordion>
+
+              <ProductAccordion title="Returns & exchange">
+                <ul className="space-y-1.5">
+                  {[
+                    "100% original product",
+                    "Cash on delivery is available",
+                    "Easy returns within 7 days",
+                    `Free shipping on orders above ${formatPrice(freeShipAt)}`,
+                  ].map((text) => (
+                    <li key={text} className="flex gap-2">
+                      <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-tz-navy/40" />
+                      <span>{text}</span>
+                    </li>
                   ))}
-              </motion.div>
-            </ProductAccordion>
-          )}
-
-          <ProductAccordion title="SIZE GUIDE">
-            <motion.div variants={itemVariants} className="space-y-2 text-sm text-gray-600">
-              {productData.department === 'bags' ? (
-                <>
-                  <p>Bag sizes are listed as approximate outer dimensions on the product (H × W × D).</p>
-                  <p>Laptop bags: match the listed laptop size. Crossbody and slings fit daily essentials, not a 15" laptop unless stated.</p>
-                  <p>If you need help choosing, WhatsApp us with the product name after we publish a contact number.</p>
-                </>
-              ) : productData.department === 'accessories' ? (
-                <>
-                  <p>Belts: measure your usual waist over trousers, or pick the size that matches your jean waist.</p>
-                  <p>Wallets: one size unless noted. Card slots are standard RFID-ready where specified.</p>
-                </>
-              ) : (
-                <>
-                  <p>Leather jackets are cut true to size. If you are between sizes, size up for a layer underneath.</p>
-                  <p>Chest: measure around the fullest part. Compare with the size chart on the garment label when delivered.</p>
-                  <p>Indian sizes: S 36–38" chest · M 38–40" · L 40–42" · XL 42–44" · XXL 44–46" (approx.).</p>
-                </>
-              )}
-            </motion.div>
-          </ProductAccordion>
-
-          <ProductAccordion title="RETURNS & EXCHANGE">
-            <motion.div variants={itemVariants} className="space-y-2">
-              {[
-                "100% Original Product",
-                "Cash on Delivery is available on this product",
-                "Easy Return Policy within 7 days",
-                `Free shipping on orders above ${formatPrice(999)}`
-              ].map((text, index) => (
-                <motion.p
-                  key={index}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className='flex items-center gap-2 text-gray-600 text-sm'
-                >
-                  <span className='w-1.5 h-1.5 bg-black rounded-full'></span>
-                  {text}
-                </motion.p>
-              ))}
-            </motion.div>
-          </ProductAccordion>
+                </ul>
+              </ProductAccordion>
+            </div>
+          </motion.div>
         </motion.div>
 
         {/* Reviews Section */}
@@ -697,65 +700,53 @@ const Products = () => {
       </div>
 
       {totalStock > 0 && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 px-4 py-3 flex flex-col gap-2 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-          <div className="flex items-center gap-3">
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold truncate text-tz-navy">{productData.name}</p>
-              <p className="text-xs text-tz-navy/55">
-                {formatPrice(displayPrice)}
-                {productData.sizes?.length ? ` · ${size || 'Select size'}` : ''}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={handleAddToCart}
-              className="shrink-0 bg-tz-navy text-white px-4 py-2.5 text-xs font-semibold tracking-wide"
-            >
-              ADD TO CART
-            </button>
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 px-4 py-3 flex items-center gap-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold truncate text-tz-navy">{productData.name}</p>
+            <p className="text-xs text-tz-navy/55 mt-0.5">
+              {formatPrice(displayPrice)}
+              {productData.sizes?.length ? ` · ${size || 'Select size'}` : ''}
+            </p>
           </div>
-          <Link
-            to="/custom-jackets"
-            className="text-center text-[11px] text-tz-navy/65 hover:text-tz-navy"
+          <button
+            type="button"
+            onClick={handleAddToCart}
+            className="shrink-0 bg-tz-navy text-white px-4 py-3 text-xs font-semibold tracking-wide"
           >
-            Need a custom fit? →
-          </Link>
+            ADD TO CART
+          </button>
         </div>
       )}
 
-      {/* Add to Cart Success Popup */}
       <AnimatePresence>
         {showAddToCartPopup && (
           <motion.div
-            initial={{ opacity: 0, y: 50 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            className="fixed bottom-24 lg:bottom-4 left-1/2 transform -translate-x-1/2 z-50 w-[90%] max-w-sm"
+            exit={{ opacity: 0, y: 16 }}
+            className="fixed z-[60] left-3 right-3 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] lg:left-auto lg:right-6 lg:bottom-6 lg:w-[22rem]"
           >
-            <div className="bg-white rounded-2xl shadow-2xl p-4 border-l-4 border-green-500">
-              <div className="flex items-center gap-3">
-                <motion.div
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 0.5 }}
-                  className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center"
-                >
-                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="bg-white shadow-2xl border border-tz-navy/10 p-4">
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 shrink-0 bg-green-100 rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                </motion.div>
-                <div className="flex-1">
-                  <p className="font-semibold text-sm">Added to Cart!</p>
-                  <p className="text-xs text-gray-500">{productData.name} - Size {size}</p>
                 </div>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => navigate('/cart')}
-                  className="bg-tz-navy text-white hover:bg-tz-pink hover:text-white transition-colors duration-300 px-4 py-2 rounded-lg text-xs font-medium"
-                >
-                  View Cart
-                </motion.button>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm text-tz-navy">Added to cart</p>
+                  <p className="text-xs text-tz-navy/60 mt-1 leading-relaxed line-clamp-2">
+                    {productData.name}{size ? ` · Size ${size}` : ''}
+                  </p>
+                </div>
               </div>
+              <button
+                type="button"
+                onClick={() => navigate('/cart')}
+                className="mt-3 w-full bg-tz-navy text-white py-2.5 text-xs font-semibold tracking-wide"
+              >
+                View cart
+              </button>
             </div>
           </motion.div>
         )}

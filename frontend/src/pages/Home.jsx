@@ -66,10 +66,10 @@ const Home = () => {
 
       <div className="border-t border-gray-100" data-aos="fade-up">
         <CategoryCarousel
-          title="Bags & Everyday Carry"
-          subtitle="Handbags, totes, and work bags"
-          department="bags"
-          viewAllHref="/shop?department=bags"
+          title="Accessories"
+          subtitle="Bags, belts, wallets, and everyday leather"
+          department="accessories"
+          viewAllHref="/shop?department=accessories"
         />
       </div>
 

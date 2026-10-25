@@ -61,7 +61,7 @@ const Contact = () => {
   };
 
   const fieldClass =
-    "w-full border border-gray-200 bg-white px-4 py-3 text-sm text-tz-navy placeholder:text-tz-navy/35 focus:outline-none focus:border-tz-navy focus:ring-1 focus:ring-tz-navy/20 transition-colors";
+    "w-full border border-gray-200 bg-white px-4 py-3 text-base text-tz-navy placeholder:text-tz-navy/35 focus:outline-none focus:border-tz-navy focus:ring-1 focus:ring-tz-navy/20 transition-colors";
   const labelClass =
     "block text-[11px] font-semibold uppercase tracking-[0.12em] text-tz-navy/55 mb-2";
 

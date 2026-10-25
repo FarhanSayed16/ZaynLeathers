@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext";
 import ProductItem from "../components/ProductItem";
@@ -8,15 +8,22 @@ import Breadcrumbs from "../components/Breadcrumbs";
 import {
   productMatchesCategory,
   productMatchesDepartment,
+  normalizeDepartment,
+  titleCaseColor,
 } from "../utils/categoryMap";
+import brand from "../brand";
 
 const CATEGORY_CHIPS = [
   { label: "All", value: "" },
   { label: "Men", value: "men" },
   { label: "Women", value: "women" },
-  { label: "Bags", value: "bags" },
   { label: "Accessories", value: "accessories" },
+  { label: "Kids", value: "kids" },
 ];
+
+const SHOP_COLOURS = (
+  brand.catalog?.taxonomy?.colours || ["black", "brown", "blue", "green", "white", "red"]
+).map(titleCaseColor);
 
 const PRICE_ABS_MIN = 0;
 const PRICE_ABS_MAX = 50000;
@@ -31,7 +38,7 @@ function isInStock(item) {
 
 const Shop = () => {
   const [filterProducts, setFilterProducts] = useState([]);
-  const { products, search, setSearch, categories, categoryTree } = useContext(ShopContext);
+  const { products, search, setSearch, categories, categoryTree, formatPrice } = useContext(ShopContext);
   const [searchParams, setSearchParams] = useSearchParams();
   const [showFilter, setShowFilter] = useState(false);
   const [category, setCategory] = useState([]);
@@ -45,8 +52,10 @@ const Shop = () => {
   const [catalogReady, setCatalogReady] = useState(false);
   const itemsPerPage = 16;
 
-  const urlDepartment = searchParams.get("department") || "";
+  const rawUrlDepartment = searchParams.get("department") || "";
+  const urlDepartment = normalizeDepartment(rawUrlDepartment) || rawUrlDepartment;
   const urlCategorySlug = searchParams.get("category") || "";
+  const urlColor = searchParams.get("color") || "";
   const urlQuery = searchParams.get("q") || "";
   const urlSort = searchParams.get("sort") || "";
 
@@ -79,12 +88,32 @@ const Shop = () => {
     }
   }, [products.length]);
 
+  /* Soft-redirect legacy department=bags → accessories */
+  useEffect(() => {
+    if (String(rawUrlDepartment).toLowerCase() !== "bags") return;
+    const next = new URLSearchParams(searchParams);
+    next.set("department", "accessories");
+    setSearchParams(next, { replace: true });
+  }, [rawUrlDepartment, searchParams, setSearchParams]);
+
   useEffect(() => {
     if (urlDepartment) setCategory([urlDepartment]);
     else if (!urlDepartment && !urlCategorySlug) setCategory([]);
     if (urlCategorySlug) setSubCategory([urlCategorySlug]);
     else setSubCategory([]);
   }, [urlDepartment, urlCategorySlug]);
+
+  useEffect(() => {
+    if (urlColor) {
+      const colors = urlColor
+        .split(",")
+        .map((c) => titleCaseColor(c.trim()))
+        .filter(Boolean);
+      setColor(colors);
+    } else {
+      setColor([]);
+    }
+  }, [urlColor]);
 
   useEffect(() => {
     setSearch(urlQuery);
@@ -196,9 +225,19 @@ const Shop = () => {
 
   const togglesetColor = (e) => {
     const value = e.target.value;
-    setColor((prev) =>
-      prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value]
-    );
+    setColor((prev) => {
+      const nextColors = prev.includes(value)
+        ? prev.filter((item) => item !== value)
+        : [...prev, value];
+      const next = new URLSearchParams(searchParams);
+      if (nextColors.length) {
+        next.set("color", nextColors.map((c) => String(c).toLowerCase()).join(","));
+      } else {
+        next.delete("color");
+      }
+      setSearchParams(next, { replace: true });
+      return nextColors;
+    });
   };
 
   const clearAllFilters = () => {
@@ -212,6 +251,7 @@ const Shop = () => {
     const next = new URLSearchParams(searchParams);
     next.delete("category");
     next.delete("department");
+    next.delete("color");
     next.delete("q");
     next.delete("sort");
     setSearch("");
@@ -261,7 +301,16 @@ const Shop = () => {
       productsCopy = productsCopy.filter((item) => material.includes(item.material));
     }
     if (color.length > 0) {
-      productsCopy = productsCopy.filter((item) => color.includes(item.color));
+      const wanted = color.map((c) => String(c).toLowerCase());
+      productsCopy = productsCopy.filter((item) => {
+        const productColors = [
+          item.color,
+          ...(Array.isArray(item.colors) ? item.colors : []),
+        ]
+          .filter(Boolean)
+          .map((c) => String(c).toLowerCase());
+        return wanted.some((w) => productColors.includes(w));
+      });
     }
     if (availability === "in") {
       productsCopy = productsCopy.filter((item) => isInStock(item));
@@ -311,35 +360,37 @@ const Shop = () => {
     (priceRange[0] > priceBounds.min || priceRange[1] < priceBounds.max ? 1 : 0);
 
   const headerCopy = useMemo(() => {
-    const dept = category[0];
+    const dept = normalizeDepartment(category[0]) || category[0];
     const labels = {
       men: {
         title: "Men's Collection",
-        subtitle: "Jackets, blazers, and leather essentials.",
+        subtitle: "Jackets, blazers, coats, and leather essentials.",
         seo: "Men's Leather",
       },
       women: {
         title: "Women's Collection",
-        subtitle: "Jackets and leather pieces made to last.",
+        subtitle: "Jackets, coats, and leather pieces made to last.",
         seo: "Women's Leather",
-      },
-      bags: {
-        title: "Leather Bags",
-        subtitle: "Handbags, laptop bags, backpacks, and slings.",
-        seo: "Leather Bags",
       },
       accessories: {
         title: "Accessories",
-        subtitle: "Wallets, belts, and finishing essentials.",
+        subtitle: "Bags, belts, wallets, gloves, and finishing essentials.",
         seo: "Accessories",
       },
       kids: {
-        title: "Kids",
-        subtitle: "Leather styles for kids.",
+        title: "Kids Leather Jackets",
+        subtitle: "Leather styles sized for kids.",
         seo: "Kids Leather",
       },
     };
     if (dept && labels[dept]) return labels[dept];
+    if (urlCategorySlug === "movie-jackets") {
+      return {
+        title: "Movie Jackets",
+        subtitle: "Celebrity and film-inspired leather styles.",
+        seo: "Movie Jackets",
+      };
+    }
     if (urlQuery) {
       return {
         title: `Search results`,
@@ -356,10 +407,10 @@ const Shop = () => {
     }
     return {
       title: "Shop All",
-      subtitle: "Jackets, bags, and leather essentials — filter by price, colour, and style.",
+      subtitle: "Jackets, accessories, and leather essentials — filter by price, colour, and style.",
       seo: "Shop Collection",
     };
-  }, [category, urlQuery, sortType, urlSort]);
+  }, [category, urlCategorySlug, urlQuery, sortType, urlSort]);
 
   const breadcrumbItems = useMemo(() => {
     const items = [{ label: "Home", to: "/" }];
@@ -383,8 +434,20 @@ const Shop = () => {
     return items;
   }, [category, subCategory, sortType]);
 
+  const pricePoints = useMemo(() => {
+    const amounts = new Set();
+    products.forEach((item) => {
+      const price = Number(item.price);
+      if (price > 0) amounts.add(price);
+    });
+    return [...amounts].sort((a, b) => a - b);
+  }, [products]);
+
   const categoryOptions = useMemo(() => {
-    const fromApi = (categories || []).filter((c) => c.type === "department");
+    const fromApi = (categories || []).filter((c) => {
+      const slug = String(c.slug || c.name || "").toLowerCase();
+      return c.type === "department" && slug !== "uncategorized";
+    });
     if (fromApi.length > 0) return fromApi;
     const fromTree = (categoryTree || []).filter(
       (d) => d.type === "department" || !d.parent
@@ -420,7 +483,7 @@ const Shop = () => {
     return flat.slice(0, 30);
   }, [category, categoryTree, categories]);
 
-  const FiltersBody = () => (
+  const renderFilters = () => (
     <>
       <FilterSection title="Price Range">
         <PriceRangeSlider
@@ -428,6 +491,8 @@ const Shop = () => {
           max={priceBounds.max}
           value={priceRange}
           onChange={setPriceRange}
+          format={formatPrice}
+          points={pricePoints}
         />
       </FilterSection>
 
@@ -472,7 +537,7 @@ const Shop = () => {
 
       {nestedCategoryLinks.length > 0 && (
         <FilterSection title={category[0] ? category[0].toUpperCase() : "Categories"}>
-          <div className="flex flex-col gap-2 max-h-56 overflow-y-auto pr-2 custom-scrollbar">
+          <div className="flex flex-col gap-2">
             {nestedCategoryLinks.map((s) => (
               <Checkbox
                 key={s._id || s.slug}
@@ -506,20 +571,11 @@ const Shop = () => {
 
       <FilterSection title="Colour">
         <div className="grid grid-cols-2 gap-2">
-          {[
-            "Black",
-            "Brown",
-            "Tan",
-            "Red",
-            "Blue",
-            "Green",
-            "White",
-            "Burgundy",
-          ].map((c) => (
+          {SHOP_COLOURS.map((c) => (
             <Checkbox
               key={c}
               value={c}
-              checked={color.includes(c)}
+              checked={color.some((x) => String(x).toLowerCase() === String(c).toLowerCase())}
               onChange={togglesetColor}
               label={c}
             />
@@ -548,7 +604,7 @@ const Shop = () => {
           <p className="mt-2 text-sm text-tz-navy/55 max-w-xl">
             {headerCopy.subtitle}
           </p>
-          <div className="mt-5 flex flex-wrap gap-2">
+          <div className="mt-5 -mx-4 px-4 sm:mx-0 sm:px-0 flex gap-2 overflow-x-auto no-scrollbar sm:flex-wrap">
             {CATEGORY_CHIPS.map((chip) => {
               const chipActive =
                 chip.value === ""
@@ -559,7 +615,7 @@ const Shop = () => {
                   key={chip.label}
                   type="button"
                   onClick={() => setUrlDepartment(chip.value)}
-                  className={`px-4 py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors border ${
+                  className={`shrink-0 px-4 py-2 text-xs font-semibold uppercase tracking-wide transition-colors border ${
                     chipActive
                       ? "bg-tz-navy text-white border-tz-navy"
                       : "bg-white text-tz-navy border-gray-200 hover:border-tz-navy"
@@ -594,7 +650,7 @@ const Shop = () => {
 
         {/* Desktop layout */}
         <div className="hidden md:flex gap-8 items-start">
-          <aside className="w-64 lg:w-72 flex-shrink-0 sticky top-28 max-h-[calc(100vh-8rem)] overflow-y-auto overscroll-contain bg-white border border-gray-200 p-5 custom-scrollbar">
+          <aside className="w-64 lg:w-72 flex-shrink-0 sticky top-28 self-start bg-white border border-gray-200 p-5">
             <div className="flex justify-between items-center mb-5">
               <h3 className="font-semibold text-sm uppercase tracking-[0.12em] text-tz-navy">
                 Filters
@@ -609,7 +665,7 @@ const Shop = () => {
                 </button>
               )}
             </div>
-            <FiltersBody />
+            {renderFilters()}
           </aside>
 
           <div className="flex-1 min-w-0">
@@ -670,7 +726,7 @@ const Shop = () => {
                 </div>
               </div>
               <div className="p-4 pb-28">
-                <FiltersBody />
+                {renderFilters()}
               </div>
               <div className="sticky bottom-0 bg-white border-t border-gray-100 p-4">
                 <button
@@ -758,50 +814,194 @@ const Checkbox = ({ value, checked, onChange, label }) => (
   </label>
 );
 
-const PriceRangeSlider = ({ min, max, value, onChange }) => {
-  const [lo, hi] = value;
+const PriceRangeSlider = ({ min, max, value, onChange, format, points = [] }) => {
+  const trackRef = useRef(null);
+  const dragRef = useRef(null);
+  const liveRef = useRef(value);
+  const [live, setLive] = useState(value);
+  const [dragging, setDragging] = useState(null);
+
+  useEffect(() => {
+    if (dragRef.current) return;
+    liveRef.current = value;
+    setLive(value);
+  }, [value]);
+
   const span = Math.max(max - min, 1);
+  const step = span >= 8000 ? 500 : 100;
+  const [lo, hi] = live;
+  const atFullRange = lo <= min + 0.5 && hi >= max - 0.5;
+
+  const valueFromX = (clientX) => {
+    const rect = trackRef.current?.getBoundingClientRect();
+    if (!rect?.width) return min;
+    const ratio = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+    return min + ratio * span;
+  };
+
+  const snap = (n) => {
+    if (n <= min + step / 2) return min;
+    if (n >= max - step / 2) return max;
+    return Math.min(max, Math.max(min, Math.round(n / step) * step));
+  };
+
+  const write = (pair) => {
+    const ordered = pair[0] <= pair[1] ? pair : [pair[1], pair[0]];
+    liveRef.current = ordered;
+    setLive(ordered);
+    onChange(ordered);
+  };
+
+  useEffect(() => {
+    const move = (event) => {
+      const which = dragRef.current;
+      if (!which) return;
+      event.preventDefault();
+      const next = valueFromX(event.clientX);
+      const [curLo, curHi] = liveRef.current;
+      write(which === "lo" ? [Math.min(next, curHi), curHi] : [curLo, Math.max(next, curLo)]);
+    };
+    const up = () => {
+      if (!dragRef.current) return;
+      dragRef.current = null;
+      setDragging(null);
+      const [curLo, curHi] = liveRef.current;
+      write([snap(curLo), snap(curHi)]);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
+    return () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
+    };
+  }, [min, max, onChange]);
+
+  const begin = (which, event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    dragRef.current = which;
+    setDragging(which);
+    const next = valueFromX(event.clientX);
+    const [curLo, curHi] = liveRef.current;
+    write(which === "lo" ? [Math.min(next, curHi), curHi] : [curLo, Math.max(next, curLo)]);
+  };
+
+  const nudge = (which, direction) => {
+    const [curLo, curHi] = liveRef.current;
+    if (which === "lo") {
+      const next = Math.min(Math.max(min, curLo + direction * step), curHi);
+      onChange([next === curHi ? curHi : next, curHi]);
+      return;
+    }
+    const next = Math.max(Math.min(max, curHi + direction * step), curLo);
+    onChange([curLo, next]);
+  };
+
+  const showPoints = points.length > 1 && points.length <= 6;
 
   return (
     <div className="pt-1">
-      <div className="relative h-6 flex items-center">
-        <div className="absolute left-0 right-0 h-1 bg-gray-200 rounded" />
+      <div className="flex items-center justify-between gap-3 text-sm tabular-nums">
+        <span className="font-medium text-tz-navy">{format(Math.round(lo))}</span>
+        <span className="text-[10px] uppercase tracking-[0.14em] text-tz-navy/35">to</span>
+        <span className="font-medium text-tz-navy">{format(Math.round(hi))}</span>
+      </div>
+
+      <div
+        ref={trackRef}
+        data-track="1"
+        className="relative mt-4 h-10 cursor-pointer touch-none select-none"
+        onPointerDown={(event) => {
+          if (event.target.closest("button")) return;
+          const next = valueFromX(event.clientX);
+          const [curLo, curHi] = liveRef.current;
+          begin(Math.abs(next - curLo) <= Math.abs(next - curHi) ? "lo" : "hi", event);
+        }}
+      >
+        <div className="absolute left-1 right-1 top-1/2 h-1 -translate-y-1/2 rounded-full bg-tz-navy/10" />
         <div
-          className="absolute h-1 bg-tz-navy rounded"
+          className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-tz-navy"
           style={{
-            left: `${((lo - min) / span) * 100}%`,
-            right: `${100 - ((hi - min) / span) * 100}%`,
+            left: `calc(${((lo - min) / span) * 100}% )`,
+            right: `calc(${100 - ((hi - min) / span) * 100}% )`,
+            transition: dragging ? "none" : "left 160ms ease, right 160ms ease",
           }}
         />
-        <input
-          type="range"
-          min={min}
-          max={max}
-          value={lo}
-          onChange={(e) => {
-            const next = Math.min(Number(e.target.value), hi - 1);
-            onChange([next, hi]);
-          }}
-          className="absolute w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-tz-navy [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-tz-navy [&::-moz-range-thumb]:border-0"
-          aria-label="Minimum price"
-        />
-        <input
-          type="range"
-          min={min}
-          max={max}
-          value={hi}
-          onChange={(e) => {
-            const next = Math.max(Number(e.target.value), lo + 1);
-            onChange([lo, next]);
-          }}
-          className="absolute w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-tz-navy [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-tz-navy [&::-moz-range-thumb]:border-0"
-          aria-label="Maximum price"
-        />
+        {[
+          ["lo", lo, "Minimum price"],
+          ["hi", hi, "Maximum price"],
+        ].map(([which, amount, label]) => (
+          <button
+            key={which}
+            type="button"
+            role="slider"
+            aria-label={label}
+            aria-valuemin={min}
+            aria-valuemax={max}
+            aria-valuenow={amount}
+            aria-valuetext={format(Math.round(amount))}
+            onPointerDown={(event) => begin(which, event)}
+            onKeyDown={(event) => {
+              if (event.key === "ArrowRight" || event.key === "ArrowUp") {
+                event.preventDefault();
+                nudge(which, 1);
+              } else if (event.key === "ArrowLeft" || event.key === "ArrowDown") {
+                event.preventDefault();
+                nudge(which, -1);
+              } else if (event.key === "Home") {
+                event.preventDefault();
+                onChange(which === "lo" ? [min, hi] : [lo, lo]);
+              } else if (event.key === "End") {
+                event.preventDefault();
+                onChange(which === "lo" ? [hi, hi] : [lo, max]);
+              }
+            }}
+            className={`absolute top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-tz-navy bg-white shadow-md cursor-grab active:cursor-grabbing focus:outline-none focus-visible:ring-2 focus-visible:ring-tz-navy focus-visible:ring-offset-2 ${
+              dragging === which ? "scale-110" : ""
+            }`}
+            style={{
+              left: `${((amount - min) / span) * 100}%`,
+              zIndex: dragging === which ? 3 : which === "hi" ? 2 : 1,
+              transition: dragging ? "none" : "left 160ms ease",
+            }}
+          />
+        ))}
       </div>
-      <div className="flex justify-between text-xs text-tz-navy/60 mt-2 tabular-nums">
-        <span>₹{lo.toLocaleString("en-IN")}</span>
-        <span>₹{hi.toLocaleString("en-IN")}</span>
-      </div>
+
+      {showPoints && (
+        <div className="flex flex-wrap gap-1.5 pt-1">
+          <button
+            type="button"
+            onClick={() => onChange([min, max])}
+            className={`px-2.5 py-1 text-[11px] border transition-colors ${
+              atFullRange
+                ? "bg-tz-navy text-white border-tz-navy"
+                : "bg-white text-tz-navy/70 border-gray-200 hover:border-tz-navy"
+            }`}
+          >
+            All
+          </button>
+          {points.map((price) => {
+            const active = lo === price && hi === price;
+            return (
+              <button
+                key={price}
+                type="button"
+                onClick={() => onChange([price, price])}
+                className={`px-2.5 py-1 text-[11px] border tabular-nums transition-colors ${
+                  active
+                    ? "bg-tz-navy text-white border-tz-navy"
+                    : "bg-white text-tz-navy/70 border-gray-200 hover:border-tz-navy"
+                }`}
+              >
+                {format(price)}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };
