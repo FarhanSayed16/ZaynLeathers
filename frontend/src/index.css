@@ -71,6 +71,13 @@ html {
   ::-webkit-scrollbar {
     display: none;
   }
+
+  /* 16px stops iOS from zooming the page when a field is focused. */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

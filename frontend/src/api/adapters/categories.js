@@ -32,7 +32,7 @@ export async function fetchCategories() {
   const url = wcUrl("products/categories", {
     per_page: 100,
     hide_empty: false,
-    orderby: "menu_order",
+    orderby: "id",
     order: "asc",
   });
 

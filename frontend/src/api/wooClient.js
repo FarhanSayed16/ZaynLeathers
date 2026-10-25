@@ -46,8 +46,17 @@ function clearCartToken() {
  * @param {string} path – e.g. "products", "orders/123"
  * @param {Record<string, string>} params – extra query params
  */
+function apiBase() {
+  // Dev requests stay on localhost and Vite proxies them, so the browser
+  // never makes a cross-origin call to Hostinger.
+  if (import.meta.env.DEV && typeof window !== "undefined") {
+    return window.location.origin;
+  }
+  return WC_BASE;
+}
+
 function wcUrl(path, params = {}) {
-  const url = new URL(`/wp-json/wc/v3/${path}`, WC_BASE);
+  const url = new URL(`/wp-json/wc/v3/${path}`, apiBase());
   if (WC_CK) url.searchParams.set("consumer_key", WC_CK);
   if (WC_CS) url.searchParams.set("consumer_secret", WC_CS);
   Object.entries(params).forEach(([k, v]) => {
@@ -65,7 +74,7 @@ function wcUrl(path, params = {}) {
  * @param {Record<string, string>} params
  */
 function storeUrl(path, params = {}) {
-  const url = new URL(`/wp-json/wc/store/v1/${path}`, WC_BASE);
+  const url = new URL(`/wp-json/wc/store/v1/${path}`, apiBase());
   Object.entries(params).forEach(([k, v]) => {
     if (v !== undefined && v !== null && v !== "") {
       url.searchParams.set(k, String(v));
@@ -80,7 +89,7 @@ function storeUrl(path, params = {}) {
  * @param {Record<string, string>} params
  */
 function wpUrl(path, params = {}) {
-  const url = new URL(`/wp-json/${path}`, WC_BASE);
+  const url = new URL(`/wp-json/${path}`, apiBase());
   Object.entries(params).forEach(([k, v]) => {
     if (v !== undefined && v !== null && v !== "") {
       url.searchParams.set(k, String(v));
@@ -97,15 +106,22 @@ function wpUrl(path, params = {}) {
  * Generic fetch wrapper with JSON parsing and error handling.
  */
 async function request(url, options = {}) {
-  const defaults = {
-    headers: { "Content-Type": "application/json" },
-    credentials: "omit",
-  };
+  const method = String(options.method || "GET").toUpperCase();
+  const headers = { ...(options.headers || {}) };
+  if (options.body != null && !headers["Content-Type"] && !headers["content-type"]) {
+    headers["Content-Type"] = "application/json";
+  }
+  // A JSON content type on GET forces a CORS preflight. GET has no body.
+  if ((method === "GET" || method === "HEAD") && options.body == null) {
+    delete headers["Content-Type"];
+    delete headers["content-type"];
+  }
 
   const merged = {
-    ...defaults,
+    credentials: "omit",
     ...options,
-    headers: { ...defaults.headers, ...options.headers },
+    method,
+    headers,
   };
 
   const res = await fetch(url, merged);

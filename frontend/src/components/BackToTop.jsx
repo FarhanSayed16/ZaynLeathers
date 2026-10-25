@@ -26,7 +26,7 @@ const BackToTop = () => {
       type="button"
       aria-label="Back to top"
       onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-      className="fixed bottom-6 left-4 sm:left-6 z-40 w-11 h-11 rounded-full bg-white border border-gray-200 shadow-md text-tz-navy flex items-center justify-center hover:bg-tz-navy hover:text-white transition-colors"
+      className="hidden lg:flex fixed bottom-6 left-6 z-40 w-11 h-11 rounded-full bg-white border border-gray-200 shadow-md text-tz-navy items-center justify-center hover:bg-tz-navy hover:text-white transition-colors"
     >
       <FaChevronUp size={14} />
     </button>

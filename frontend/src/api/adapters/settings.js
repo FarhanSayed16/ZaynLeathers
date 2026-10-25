@@ -59,6 +59,7 @@ export async function fetchSettings() {
         newArrivalProductIds: homeConfig.newArrivalProductIds || [],
         bestsellerProductIds: homeConfig.bestsellerProductIds || [],
       },
+      categoryTiles: Array.isArray(data.categoryTiles) ? data.categoryTiles : [],
     };
   } catch {
     return {
@@ -74,6 +75,7 @@ export async function fetchSettings() {
         newArrivalProductIds: [],
         bestsellerProductIds: [],
       },
+      categoryTiles: [],
     };
   }
 }

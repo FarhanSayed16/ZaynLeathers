@@ -36,7 +36,7 @@ export async function fetchProductReviews(productId) {
     product: productId,
     per_page: 50,
     status: "approved",
-    orderby: "date_created",
+    orderby: "date",
     order: "desc",
   });
 
