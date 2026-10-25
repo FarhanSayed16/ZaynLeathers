@@ -69,6 +69,65 @@ add_action( 'rest_api_init', function () {
     ]);
 });
 
+function zayn_default_heroes() {
+    return [
+        [
+            'image'     => '/brand/heroes/banner-1-men.png',
+            'title'     => 'Leather jackets',
+            'highlight' => 'For him',
+            'subtitle'  => 'Built for the road and the city.',
+            'ctaLabel'  => 'Shop men',
+            'ctaLink'   => '/shop?department=men',
+            'isActive'  => true,
+        ],
+        [
+            'image'     => '/brand/heroes/banner-2-women.png',
+            'title'     => 'For her',
+            'highlight' => 'Suede & leather',
+            'subtitle'  => 'Biker silhouettes in real leather.',
+            'ctaLabel'  => 'Shop women',
+            'ctaLink'   => '/shop?department=women',
+            'isActive'  => true,
+        ],
+        [
+            'image'     => '/brand/heroes/banner-3-accessories.png',
+            'title'     => 'Leather bags',
+            'highlight' => 'Everyday carry',
+            'subtitle'  => 'Totes, belts, and leather essentials.',
+            'ctaLabel'  => 'Shop accessories',
+            'ctaLink'   => '/shop?department=accessories',
+            'isActive'  => true,
+        ],
+        [
+            'image'     => '/brand/heroes/banner-4-collection.png',
+            'title'     => 'The collection',
+            'highlight' => 'Made to last',
+            'subtitle'  => 'Jackets cut to be worn often and kept longer.',
+            'ctaLabel'  => 'Shop all',
+            'ctaLink'   => '/shop',
+            'isActive'  => true,
+        ],
+    ];
+}
+
+function zayn_default_category_tiles() {
+    return [
+        [ 'label' => 'Men', 'image' => '/brand/categories/men.png', 'link' => '/shop?department=men', 'order' => 0 ],
+        [ 'label' => 'Women', 'image' => '/brand/categories/women.png', 'link' => '/shop?department=women', 'order' => 1 ],
+        [ 'label' => 'Accessories', 'image' => '/brand/categories/accessories.png', 'link' => '/shop?department=accessories', 'order' => 2 ],
+        [ 'label' => 'Kids', 'image' => '/brand/categories/kids.png', 'link' => '/shop?department=kids', 'order' => 3 ],
+    ];
+}
+
+function zayn_saved_list( $option, $defaults ) {
+    $raw = get_option( $option, '' );
+    $list = is_string( $raw ) && $raw !== '' ? json_decode( $raw, true ) : null;
+    if ( ! is_array( $list ) || ! count( $list ) ) {
+        return $defaults;
+    }
+    return $list;
+}
+
 function zayn_get_settings() {
     $promo_raw = get_option( 'zayn_promo_strip', '' );
     $promo     = null;
@@ -109,6 +168,7 @@ function zayn_get_settings() {
             'newArrivalProductIds' => array_map( 'strval', $home['newArrivalProductIds'] ?? [] ),
             'bestsellerProductIds' => array_map( 'strval', $home['bestsellerProductIds'] ?? [] ),
         ],
+        'categoryTiles'          => zayn_saved_list( 'zayn_category_tiles', zayn_default_category_tiles() ),
     ]);
 }
 
@@ -304,11 +364,9 @@ add_action( 'rest_api_init', function () {
 });
 
 function zayn_get_hero_banners() {
-    $banners = get_option( 'zayn_hero_banners', null );
-    if ( $banners ) {
-        $banners = json_decode( $banners, true );
-    }
-    return rest_ensure_response([ 'banners' => $banners ?: [] ]);
+    return rest_ensure_response([
+        'banners' => zayn_saved_list( 'zayn_hero_banners', zayn_default_heroes() ),
+    ]);
 }
 
 /* ────────────────────────────────────────────────
@@ -478,6 +536,37 @@ function zayn_settings_page() {
         ];
         update_option( 'zayn_home_config', wp_json_encode( $home ) );
 
+        $hero_defaults = zayn_default_heroes();
+        $heroes        = [];
+        for ( $i = 0; $i < 4; $i++ ) {
+            $fallback = $hero_defaults[ $i ];
+            $image    = sanitize_text_field( wp_unslash( $_POST[ "zayn_hero_image_$i" ] ?? '' ) );
+            $heroes[] = [
+                'image'     => $image !== '' ? $image : $fallback['image'],
+                'title'     => sanitize_text_field( wp_unslash( $_POST[ "zayn_hero_title_$i" ] ?? $fallback['title'] ) ),
+                'highlight' => sanitize_text_field( wp_unslash( $_POST[ "zayn_hero_highlight_$i" ] ?? '' ) ),
+                'subtitle'  => sanitize_text_field( wp_unslash( $_POST[ "zayn_hero_subtitle_$i" ] ?? '' ) ),
+                'ctaLabel'  => sanitize_text_field( wp_unslash( $_POST[ "zayn_hero_cta_$i" ] ?? '' ) ),
+                'ctaLink'   => sanitize_text_field( wp_unslash( $_POST[ "zayn_hero_link_$i" ] ?? $fallback['ctaLink'] ) ),
+                'isActive'  => isset( $_POST[ "zayn_hero_active_$i" ] ),
+            ];
+        }
+        update_option( 'zayn_hero_banners', wp_json_encode( $heroes ) );
+
+        $tile_defaults = zayn_default_category_tiles();
+        $tiles         = [];
+        for ( $i = 0; $i < 4; $i++ ) {
+            $fallback = $tile_defaults[ $i ];
+            $image    = sanitize_text_field( wp_unslash( $_POST[ "zayn_tile_image_$i" ] ?? '' ) );
+            $tiles[]  = [
+                'label' => sanitize_text_field( wp_unslash( $_POST[ "zayn_tile_label_$i" ] ?? $fallback['label'] ) ),
+                'image' => $image !== '' ? $image : $fallback['image'],
+                'link'  => sanitize_text_field( wp_unslash( $_POST[ "zayn_tile_link_$i" ] ?? $fallback['link'] ) ),
+                'order' => $i,
+            ];
+        }
+        update_option( 'zayn_category_tiles', wp_json_encode( $tiles ) );
+
         echo '<div class="notice notice-success"><p>Settings saved.</p></div>';
     }
 
@@ -499,6 +588,9 @@ function zayn_settings_page() {
     if ( ! is_array( $home ) ) {
         $home = [];
     }
+
+    $heroes = zayn_saved_list( 'zayn_hero_banners', zayn_default_heroes() );
+    $tiles  = zayn_saved_list( 'zayn_category_tiles', zayn_default_category_tiles() );
 
     ?>
     <div class="wrap">
@@ -562,6 +654,42 @@ function zayn_settings_page() {
                     <td><input type="text" name="zayn_cors_origins" value="<?php echo esc_attr( $cors_origins ); ?>" class="large-text" placeholder="https://staging.example.com, https://preview.example.com" />
                     <p class="description">Comma-separated. Vercel preview URLs (<code>*.vercel.app</code>) are allowed automatically.</p></td>
                 </tr>
+            </table>
+
+            <h2>Homepage banners</h2>
+            <p class="description">Four slides. Image can be a site path such as <code>/brand/heroes/banner-1-men.png</code> or a full media URL. Leave the headline side of the photo clear — the site draws the title on the left.</p>
+            <table class="form-table">
+                <?php for ( $i = 0; $i < 4; $i++ ) :
+                    $hero = wp_parse_args( $heroes[ $i ] ?? [], zayn_default_heroes()[ $i ] ); ?>
+                <tr>
+                    <th>Banner <?php echo (int) $i + 1; ?></th>
+                    <td>
+                        <label>Image<br><input type="text" class="large-text" name="zayn_hero_image_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $hero['image'] ); ?>" /></label><br><br>
+                        <label>Title<br><input type="text" class="regular-text" name="zayn_hero_title_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $hero['title'] ); ?>" /></label>
+                        <label style="margin-left:12px">Italic line<br><input type="text" class="regular-text" name="zayn_hero_highlight_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $hero['highlight'] ?? '' ); ?>" /></label><br><br>
+                        <label>Subtitle<br><input type="text" class="large-text" name="zayn_hero_subtitle_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $hero['subtitle'] ?? '' ); ?>" /></label><br><br>
+                        <label>Button<br><input type="text" class="regular-text" name="zayn_hero_cta_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $hero['ctaLabel'] ?? '' ); ?>" /></label>
+                        <label style="margin-left:12px">Link<br><input type="text" class="regular-text" name="zayn_hero_link_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $hero['ctaLink'] ?? '' ); ?>" /></label><br><br>
+                        <label><input type="checkbox" name="zayn_hero_active_<?php echo (int) $i; ?>" <?php checked( ! isset( $hero['isActive'] ) || $hero['isActive'] ); ?> /> Show this banner</label>
+                    </td>
+                </tr>
+                <?php endfor; ?>
+            </table>
+
+            <h2>Shop by category</h2>
+            <p class="description">Four tiles. The name is drawn on the photo, so the image itself should not contain words.</p>
+            <table class="form-table">
+                <?php for ( $i = 0; $i < 4; $i++ ) :
+                    $tile = wp_parse_args( $tiles[ $i ] ?? [], zayn_default_category_tiles()[ $i ] ); ?>
+                <tr>
+                    <th>Tile <?php echo (int) $i + 1; ?></th>
+                    <td>
+                        <label>Name<br><input type="text" class="regular-text" name="zayn_tile_label_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $tile['label'] ); ?>" /></label><br><br>
+                        <label>Image<br><input type="text" class="large-text" name="zayn_tile_image_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $tile['image'] ); ?>" /></label><br><br>
+                        <label>Link<br><input type="text" class="regular-text" name="zayn_tile_link_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $tile['link'] ); ?>" /></label>
+                    </td>
+                </tr>
+                <?php endfor; ?>
             </table>
             <input type="submit" name="zayn_save_settings" value="Save Settings" class="button-primary" />
         </form>
