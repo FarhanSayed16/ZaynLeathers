@@ -36,19 +36,40 @@ Copy into a ticket and tick off:
 
 ### Catalogue taxonomy (critical)
 
-Create **top-level** categories (slugs):
+Storefront SSOT: `shared/brands/zayn-leathers.js` → `catalog.taxonomy` + `catalog.megaMenu` + `catalog.slugAliases`.
 
-| Slug | Role |
-|------|------|
-| `men` | Department |
-| `women` | Department |
-| `kids` | Department (optional) |
-| `bags` | Department |
-| `accessories` | Department |
+#### Top-level departments (Woo parent categories)
 
-Child categories can use any slug (e.g. `leather-jackets`, `biker-jackets`). Assign products to **parent + child**.
+| Slug | Role | Storefront |
+|------|------|------------|
+| `men` | Department | `/shop?department=men` |
+| `women` | Department | `/shop?department=women` |
+| `accessories` | Department (bags live here) | `/shop?department=accessories` |
+| `kids` | Department | `/shop?department=kids` |
 
-If client uses different slugs (`mens`, `womens`), add them under `catalog.slugAliases` in `shared/brands/zayn-leathers.js`.
+Do **not** create a top-level `bags` department for new catalogue work. If an old `bags` category exists, keep the slug and rely on `slugAliases` (`bags` → `accessories`) so `/shop?department=bags` still finds products.
+
+#### Leaf categories (children under the matching department)
+
+Assign each product to **parent department + leaf**. Slug rule: lowercase, spaces → `-`.
+
+**Men (examples):** `leather-jackets`, `bomber-jackets`, `biker-jackets`, `suede-jackets`, `shearling-jackets`, `sheepskin-jackets`, `aviator-jackets`, `hooded-jackets`, `blouson-jackets`, `distressed-jackets`, `faux-leather-jackets`, `perforated-jackets`, `slim-fit-jackets`, `vintage-jackets`, `varsity-jackets`, `puffer-jackets`, `leather-blazers`, `leather-coats`, `sheepskin-coats`, `shearling-coats`, `trench-coats`, `double-breasted-coats`, `leather-gilets`, `leather-waistcoats`, `leather-shirt-jackets`
+
+**Women (examples):** `leather-jackets`, `biker-jackets`, `bomber-jackets`, `suede-jackets`, `shearling-jackets`, `sheepskin-jackets`, `aviator-jackets`, `hooded-jackets`, `distressed-jackets`, `faux-leather-jackets`, `slim-fit-jackets`, `oversized-jackets`, `vintage-jackets`, `leather-blazers`, `leather-coats`, `shearling-coats`, `sheepskin-coats`, `trench-coats`, `double-breasted-coats`, `leather-waistcoats`
+
+**Accessories:** `leather-bags`, `leather-belts`, `leather-caps`, `leather-gloves`, `leather-shoes`, `leather-wallets`, `leather-leggings`
+
+**Other / themed (category filter, optional kids parent):** `kids-leather-jackets`, `movie-jackets`, `superhero-jackets`, `video-game-jackets`
+
+#### Colour = product attribute (not Woo categories)
+
+Do **not** create categories like “Black Leather Jackets”. Set a global product attribute (e.g. `pa_color` / Colour) with terms:
+
+`black`, `brown`, `blue`, `green`, `white`, `red`
+
+Storefront filters via `/shop?color=black` (optionally with `department=men|women`). Mega “Shop by colour” links use the same query.
+
+If client uses different slugs (`mens`, `womens`, `handbags`), add them under `catalog.slugAliases` in `shared/brands/zayn-leathers.js`.
 
 ### Product flags
 
@@ -78,15 +99,16 @@ VITE_RAZORPAY_KEY_ID=rzp_live_...
 ## 3. Smoke test script (run after env is live)
 
 1. Home loads heroes + Best Seller + New Arrivals (not empty / not identical by accident)
-2. Nav Men / Women mega → Shop filters correct products
-3. Search → results
-4. PDP → size → Add to cart → header total updates
-5. Cart → Items total matches header → Checkout
-6. COD order succeeds; appears under Account → Orders
-7. Razorpay path creates order when key set
-8. Welcome popup subscribe → WP admin email / newsletter CPT
-9. Custom Jackets form submit → admin notification
-10. Mobile: drawer accordion, full-width search, sticky ATC / checkout
+2. Nav Men / Women / Accessories mega → Shop filters; colour links (`?color=`) filter products
+3. Legacy `/shop?department=bags` still resolves via accessories alias
+4. Search → results
+5. PDP → size → Add to cart → header total updates
+6. Cart → Items total matches header → Checkout
+7. COD order succeeds; appears under Account → Orders
+8. Razorpay path creates order when key set
+9. Welcome popup subscribe → WP admin email / newsletter CPT
+10. Custom Jackets form submit → admin notification
+11. Mobile: drawer accordion, full-width search, sticky ATC / checkout
 
 ---
 
