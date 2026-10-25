@@ -16,6 +16,13 @@ export default defineConfig({
   server: {
     port: 5173,
     fs: { allow: ['..'] },
+    proxy: {
+      '/wp-json': {
+        target: 'https://zaynleather.com',
+        changeOrigin: true,
+        secure: true,
+      },
+    },
   },
   build: {
     rollupOptions: {
