@@ -46,15 +46,14 @@ const brand = {
 
   /* ---------- contact ---------- */
   contact: {
-    email: "afiyaleather8@gmail.com",
-    phone: "+91 62068 33970",
-    phoneHref: "tel:+916206833970",
-    whatsapp: "+91 62068 33970",
-    whatsappUrl: "https://wa.me/916206833970",
+    email: "zafyleather@gmail.com",
+    phone: "+91 93247 85219",
+    phoneHref: "tel:+919324785219",
+    whatsapp: "+91 93247 85219",
+    whatsappUrl: "https://wa.me/919324785219",
     website: "Zayn Leathers",
     websiteUrl: "https://zaynleather.com",
-    address:
-      "B.30 Ground Floor Janta Chawl K.K. Krishna Meman Marg, 90 Feet Road, Dharavi, Mumbai, Maharashtra 400017",
+    address: "Mumbai, India",
     hours: "Monday - Saturday: 10AM - 7PM",
     mapEmbedUrl: "",
     mapTitle: "Zayn Leathers Location",
@@ -65,11 +64,13 @@ const brand = {
     heroTitle: "NEW",
     heroHighlight: "Arrival",
     heroSubtitle:
-      "Zayn Leathers designs jackets, bags, and leather essentials with lasting material quality and a clean modern cut.",
+      "Genuine leather jackets, coats, skirts, and dresses for men and women, made in Mumbai.",
     storyTitle: "Our Story",
+    storyLead:
+      "Zayn Leathers blends luxury and style in every stitch. With over a decade of experience, we craft high-quality leather apparel for men and women.",
     founderName: "Zayn Leathers",
     founderNote:
-      "We started Zayn Leathers to bring honest craftsmanship to everyday leather — from motorcycle jackets to office bags — pieces you wear hard and keep longer.",
+      "From leather jackets and elegant coats to skirts and dresses, every piece is genuine leather, cut in a current silhouette. Customise your jacket for the right fit, with delivery from Mumbai, India.",
     heroVideo: "/brand/about-video.mp4",
     storyImage: "/brand/about-story.png",
     founderImage: "/brand/about-founder.jpg",
@@ -144,7 +145,7 @@ const brand = {
   /* ---------- footer ---------- */
   footer: {
     blurb:
-      "Zayn Leathers crafts jackets, bags, and leather essentials meant to be worn often and kept longer.",
+      "Zayn Leathers makes genuine leather jackets, coats, skirts, and dresses for men and women. Based in Mumbai, India.",
     creditLine: "By Zayn Leathers",
     copyrightYear: 2026,
   },
@@ -155,7 +156,7 @@ const brand = {
     twitter: "",
     instagram: "",
     linkedin: "",
-    whatsapp: "https://wa.me/916206833970",
+    whatsapp: "https://wa.me/919324785219",
   },
 
   /* ---------- welcome / entry popup (Phase D) ---------- */
@@ -209,7 +210,7 @@ const brand = {
     defaultTitle: "Zayn Leathers",
     titleTemplate: "%s | Zayn Leathers",
     defaultDescription:
-      "Crafted in leather. Made to last. Shop leather jackets, bags, belts, and more at Zayn Leathers.",
+      "Zayn Leathers makes genuine leather jackets, coats, skirts, and dresses for men and women. Based in Mumbai, India.",
   },
 
   /* ---------- catalog ---------- */

@@ -96,7 +96,8 @@ const About = () => {
               </h2>
               <div className="space-y-4 text-tz-navy/70 leading-relaxed text-sm sm:text-base">
                 <p>
-                  <span className="font-bold text-tz-navy">{brand.name}</span> was built around honest leather craftsmanship — jackets, bags, and essentials designed to be worn often and kept longer.
+                  {brand.about?.storyLead ||
+                    `${brand.name} blends luxury and style in every stitch, crafting genuine leather apparel for men and women.`}
                 </p>
                 <p>
                   {brand.about?.founderNote ||
