@@ -25,7 +25,7 @@ import { plainProductText, productCopyBlocks } from '../utils/productCopy'
 
 const Products = () => {
   const { productId } = useParams()
-  const { products, formatPrice, addToCart, navigate, settings } = useContext(ShopContext)
+  const { products, formatPrice, addToCart, navigate } = useContext(ShopContext)
   const [productData, setProductData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -83,6 +83,13 @@ const Products = () => {
           setSize('')
           setError(null)
           setLoading(false)
+          if (foundInList.type === 'variable') {
+            const { getProduct } = await import('../api/shopApi')
+            const data = await getProduct(productId)
+            if (data.success && data.product && String(data.product._id) === String(productId)) {
+              setProductData(data.product)
+            }
+          }
           return
         }
 
@@ -251,7 +258,6 @@ const Products = () => {
     )
   }
 
-  const freeShipAt = Number(settings?.freeShippingThreshold) || 2999
   const copyBlocks = productCopyBlocks(productData.description, productData.name)
   const detailRows = [
     productData.sku ? ["SKU", productData.sku] : null,
@@ -552,7 +558,7 @@ const Products = () => {
                 </a>
               ) : null}
               <p className="text-[11px] text-tz-navy/50 text-center">
-                Cash on delivery · Easy 7-day returns · Free shipping above {formatPrice(freeShipAt)}
+                Cash on delivery · 30-day returns · Free shipping worldwide
               </p>
             </div>
 
@@ -658,10 +664,10 @@ const Products = () => {
               <ProductAccordion title="Returns & exchange">
                 <ul className="space-y-1.5">
                   {[
-                    "100% original product",
-                    "Cash on delivery is available",
-                    "Easy returns within 7 days",
-                    `Free shipping on orders above ${formatPrice(freeShipAt)}`,
+                    "Handcrafted genuine leather, inspected before dispatch",
+                    "Free expedited shipping worldwide",
+                    "Returns accepted within 30 days of delivery",
+                    "30-day warranty on manufacturing defects",
                   ].map((text) => (
                     <li key={text} className="flex gap-2">
                       <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-tz-navy/40" />
@@ -681,7 +687,7 @@ const Products = () => {
           animate="visible"
           className='mt-8'
         >
-          <ReviewSection productId={productData._id} />
+          <ReviewSection productId={productData._id} sku={productData.sku} />
         </motion.div>
 
         {/* Related Products */}

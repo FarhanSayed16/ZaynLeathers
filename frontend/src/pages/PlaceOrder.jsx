@@ -228,11 +228,7 @@ const partialEnabled = !isWooMode && Boolean(partialConfig?.enabled)
 const hideClassicCod = partialEnabled && partialConfig?.replaceCod !== false
 
 const orderTotalPreview = (() => {
-  let total = getCartAmount() + (
-    pinCheck.dynamicRates && pinCheck.deliveryFee != null
-      ? pinCheck.deliveryFee
-      : delivery_fee
-  )
+  let total = getCartAmount() + getShippingFee(getCartAmount())
   if (appliedCoupon) {
     const disc =
       appliedCoupon.discountType && appliedCoupon.discountType !== 'percent' && appliedCoupon.fixedDiscount != null
@@ -377,12 +373,6 @@ const onSubmitHandler = async (event) => {
     return
   }
 
-  if (pinCheck.checked && pinCheck.serviceable === false) {
-    toast.error("We cannot deliver to this pincode")
-    setIsSubmitting(false)
-    return
-  }
-
   try {
 
     let orderItems = []
@@ -410,10 +400,7 @@ const onSubmitHandler = async (event) => {
       }
     }
 
-    const effectiveDeliveryFee =
-      pinCheck.dynamicRates && pinCheck.deliveryFee != null
-        ? pinCheck.deliveryFee
-        : getShippingFee(getCartAmount())
+    const effectiveDeliveryFee = getShippingFee(getCartAmount())
 
     let finalAmount = getCartAmount() + effectiveDeliveryFee
 
@@ -621,9 +608,6 @@ const onSubmitHandler = async (event) => {
       Delivery available
       {pinCheck.estimatedDays ? ` · ETA ${pinCheck.estimatedDays}` : ''}
     </p>
-  )}
-  {!pinCheck.loading && pinCheck.checked && !pinCheck.serviceable && (
-    <p className='text-[11px] text-red-600'>Sorry — we cannot deliver to this pincode yet.</p>
   )}
 
   <label className="flex items-center gap-2 text-sm text-tz-navy/80">

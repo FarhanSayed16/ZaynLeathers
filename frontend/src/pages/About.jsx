@@ -5,6 +5,7 @@ import { FaArrowRightLong } from "react-icons/fa6";
 import { motion } from "framer-motion";
 import brand from "../brand";
 import SEO from "../components/SEO";
+import TrustStrip from "../components/TrustStrip";
 import { ShopContext } from "../context/ShopContext";
 
 const About = () => {
@@ -69,6 +70,8 @@ const About = () => {
         </div>
       </section>
 
+      <TrustStrip />
+
       {/* Overlapping Editorial Story Section */}
       <section className="max-w-7xl mx-auto py-24 sm:py-32 px-4 sm:px-6 relative z-10">
         <div className="flex flex-col lg:flex-row items-center relative">
@@ -95,14 +98,8 @@ const About = () => {
                 Crafted in leather. <br/><span className="font-serif italic font-medium text-tz-pink">Made to last.</span>
               </h2>
               <div className="space-y-4 text-tz-navy/70 leading-relaxed text-sm sm:text-base">
-                <p>
-                  {brand.about?.storyLead ||
-                    `${brand.name} blends luxury and style in every stitch, crafting genuine leather apparel for men and women.`}
-                </p>
-                <p>
-                  {brand.about?.founderNote ||
-                    "From motorcycle jackets to office bags, every piece is chosen for material quality, clean cut, and everyday durability."}
-                </p>
+                <p>{brand.about?.storyLead}</p>
+                <p>{brand.about?.storyBody}</p>
               </div>
             </div>
           </motion.div>
@@ -138,7 +135,7 @@ const About = () => {
               
               <div className="inline-block pt-6">
                 <p className="font-bold tracking-[0.2em] uppercase text-xs sm:text-sm text-tz-pink mb-1.5">{brand.about.founderName}</p>
-                <p className="text-[10px] sm:text-xs text-white/50 uppercase tracking-[0.3em]">Founder & Creative Director</p>
+                <p className="text-[10px] sm:text-xs text-white/50 uppercase tracking-[0.3em]">Since 2015</p>
               </div>
             </div>
           </motion.div>
@@ -159,9 +156,9 @@ const About = () => {
           className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8"
         >
           {[
-            { icon: FaGem, title: "Material First", desc: "Real leather and suede with finishes that age well — not fast-fashion throwaways.", color: "text-tz-pink", bg: "bg-tz-pink/10" },
-            { icon: FaLeaf, title: "Everyday Durability", desc: "Jackets, bags, and accessories built for daily wear, travel, and work.", color: "text-tz-blue", bg: "bg-tz-blue-soft" },
-            { icon: FaLightbulb, title: "Clean Craft", desc: "Strong stitching, thoughtful hardware, and silhouettes that stay current.", color: "text-tz-navy", bg: "bg-tz-navy/10" }
+            { icon: FaGem, title: "Craft, not markups", desc: "Manufacturer-direct jackets, priced for the leather and the work, not a long chain of markups.", color: "text-tz-pink", bg: "bg-tz-pink/10" },
+            { icon: FaLeaf, title: "Inspected twice", desc: "Every jacket is checked through production and again before it leaves for dispatch.", color: "text-tz-blue", bg: "bg-tz-blue-soft" },
+            { icon: FaLightbulb, title: "Made to last", desc: "Genuine leather, chosen for comfort and durability, with a 30-day warranty on manufacturing defects.", color: "text-tz-navy", bg: "bg-tz-navy/10" }
           ].map((val, i) => (
             <motion.div key={i} variants={fadeUp} className="bg-white/80 backdrop-blur-xl rounded-[2rem] p-8 sm:p-10 text-center shadow-[0_8px_40px_rgb(0,0,0,0.04)] border border-white hover:-translate-y-2 transition-transform duration-500 group">
               <div className={`w-16 h-16 mx-auto rounded-full ${val.bg} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500`}>

@@ -46,31 +46,33 @@ const brand = {
 
   /* ---------- contact ---------- */
   contact: {
-    email: "zafyleather@gmail.com",
-    phone: "+91 93247 85219",
-    phoneHref: "tel:+919324785219",
-    whatsapp: "+91 93247 85219",
-    whatsappUrl: "https://wa.me/919324785219",
+    email: "zaynleather@gmail.com",
+    phone: "+91 90229 81515",
+    phoneHref: "tel:+919022981515",
+    whatsapp: "+91 90229 81515",
+    whatsappUrl: "https://wa.me/919022981515",
     website: "Zayn Leathers",
     websiteUrl: "https://zaynleather.com",
-    address: "Mumbai, India",
-    hours: "Monday - Saturday: 10AM - 7PM",
+    address: "",
+    hours: "Monday – Saturday · replies within 24 hours",
     mapEmbedUrl: "",
     mapTitle: "Zayn Leathers Location",
   },
 
   /* ---------- about page copy ---------- */
   about: {
-    heroTitle: "NEW",
-    heroHighlight: "Arrival",
+    heroTitle: "Established",
+    heroHighlight: "2015",
     heroSubtitle:
-      "Genuine leather jackets, coats, skirts, and dresses for men and women, made in Mumbai.",
+      "Manufacturer-direct genuine leather jackets for men and women, made to a standard we inspect ourselves.",
     storyTitle: "Our Story",
     storyLead:
-      "Zayn Leathers blends luxury and style in every stitch. With over a decade of experience, we craft high-quality leather apparel for men and women.",
+      "Established in 2015, Zayn Leathers is a manufacturer-direct brand dedicated to handcrafted genuine leather jackets for men and women. Exceptional jackets should be defined by craftsmanship, not excessive markups.",
+    storyBody:
+      "Each jacket is handcrafted from carefully selected genuine leather, combining timeless design, comfort, and lasting durability. From leather selection to the final inspection, we oversee every stage of production. Every jacket is checked again before it is dispatched.",
     founderName: "Zayn Leathers",
     founderNote:
-      "From leather jackets and elegant coats to skirts and dresses, every piece is genuine leather, cut in a current silhouette. Customise your jacket for the right fit, with delivery from Mumbai, India.",
+      "Exceptional leather jackets should be defined by craftsmanship, not excessive markups.",
     heroVideo: "/brand/about-video.mp4",
     storyImage: "/brand/about-story.png",
     founderImage: "/brand/about-founder.jpg",
@@ -99,8 +101,8 @@ const brand = {
       {
         image: "/brand/heroes/banner-2-women.png",
         title: "For her",
-        highlight: "Suede & leather",
-        subtitle: "Biker silhouettes in real leather.",
+        highlight: "Shearling",
+        subtitle: "A warmer jacket, cut to be worn often.",
         ctaLabel: "Shop women",
         ctaLink: "/shop?department=women",
       },
@@ -114,9 +116,9 @@ const brand = {
       },
       {
         image: "/brand/heroes/banner-4-collection.png",
-        title: "The collection",
-        highlight: "Made to last",
-        subtitle: "Jackets cut to be worn often and kept longer.",
+        title: "Women's jackets",
+        highlight: "Shearling collar",
+        subtitle: "Genuine leather, checked before it leaves.",
         ctaLabel: "Shop all",
         ctaLink: "/shop",
       },
@@ -125,7 +127,6 @@ const brand = {
       { image: "/brand/categories/men.png", caption: "Men", productLink: "/shop?department=men" },
       { image: "/brand/categories/women.png", caption: "Women", productLink: "/shop?department=women" },
       { image: "/brand/categories/accessories.png", caption: "Accessories", productLink: "/shop?department=accessories" },
-      { image: "/brand/categories/kids.png", caption: "Kids", productLink: "/shop?department=kids" },
     ],
     library: [
       { label: "Men", path: "/brand/categories/men.png" },
@@ -145,7 +146,7 @@ const brand = {
   /* ---------- footer ---------- */
   footer: {
     blurb:
-      "Zayn Leathers makes genuine leather jackets, coats, skirts, and dresses for men and women. Based in Mumbai, India.",
+      "Established in 2015. Zayn Leathers is a manufacturer-direct house for handcrafted genuine leather jackets for men and women.",
     creditLine: "By Zayn Leathers",
     copyrightYear: 2026,
   },
@@ -153,10 +154,20 @@ const brand = {
   /* ---------- social (empty href = hide) ---------- */
   social: {
     facebook: "",
-    twitter: "",
-    instagram: "",
+    instagram: "https://www.instagram.com/zaynleather.in/",
+    pinterest: "https://www.pinterest.com/zaynleather/",
+    twitter: "https://x.com/leather_zayn",
     linkedin: "",
-    whatsapp: "https://wa.me/919324785219",
+    ebay: "https://ebay.us/m/G4lQzb",
+    whatsapp: "https://wa.me/919022981515",
+    reels: [
+      "https://www.instagram.com/reel/C2uofJip8aF/",
+      "https://www.instagram.com/reel/DfCqEzbNaej/",
+      "https://www.instagram.com/reel/DeU7c0sCR15/",
+      "https://www.instagram.com/reel/DdlTSdPtmBd/",
+      "https://www.instagram.com/reel/Ddhi1TdMc-g/",
+      "https://www.instagram.com/reel/DcytdCQsiYD/",
+    ],
   },
 
   /* ---------- welcome / entry popup (Phase D) ---------- */
@@ -210,7 +221,7 @@ const brand = {
     defaultTitle: "Zayn Leathers",
     titleTemplate: "%s | Zayn Leathers",
     defaultDescription:
-      "Zayn Leathers makes genuine leather jackets, coats, skirts, and dresses for men and women. Based in Mumbai, India.",
+      "Established in 2015, Zayn Leathers handcrafts genuine leather jackets for men and women, with free worldwide shipping.",
   },
 
   /* ---------- catalog ---------- */
@@ -261,6 +272,7 @@ const brand = {
           "leather-gilets",
           "leather-waistcoats",
           "leather-shirt-jackets",
+          "leather-pants",
         ],
         women: [
           "leather-jackets",
@@ -292,6 +304,7 @@ const brand = {
           "leather-shoes",
           "leather-wallets",
           "leather-leggings",
+          "leather-cushion-covers",
         ],
       },
       other: [
@@ -301,6 +314,8 @@ const brand = {
         { slug: "video-game-jackets", label: "Video Game Jackets", path: "/shop?category=video-game-jackets" },
       ],
     },
+    /* Hidden from the top menu, footer, and homepage. Still available in the shop. */
+    hiddenDepartments: ["kids", "accessories"],
     nav: [
       {
         name: "Men",
@@ -324,11 +339,6 @@ const brand = {
         label: "Accessories",
         path: "/shop?department=accessories",
         mega: "accessories",
-      },
-      {
-        name: "Kids",
-        label: "Kids",
-        path: "/shop?department=kids",
       },
       {
         name: "Movie Jackets",
@@ -385,6 +395,7 @@ const brand = {
             { label: "Leather Gilets", path: "/shop?department=men&category=leather-gilets" },
             { label: "Leather Waistcoats", path: "/shop?department=men&category=leather-waistcoats" },
             { label: "Leather Shirt Jackets", path: "/shop?department=men&category=leather-shirt-jackets" },
+            { label: "Leather Pants", path: "/shop?department=men&category=leather-pants" },
           ],
         },
         {
@@ -510,7 +521,7 @@ const brand = {
       "wool-jackets": ["wool-jackets", "women-wool-jackets"],
       "oversized-jackets": ["oversized-jackets", "women-oversized-jackets"],
     },
-    promoFallback: "Free shipping on orders above ₹2,999 · Handmade leather",
+    promoFallback: "Free expedited shipping worldwide · Handcrafted leather",
     searchSuggestions: [
       "Leather Jacket",
       "Biker Jacket",

@@ -110,7 +110,11 @@ const Contact = () => {
             Contact us
           </h1>
           <p className="mt-3 text-sm text-tz-navy/60 max-w-xl leading-relaxed">
-            Questions about an order, sizing, or a custom jacket — we usually reply within 24 hours.
+            Questions about an order, sizing, or a custom jacket — we usually reply within 24 hours.{" "}
+            <Link to="/faq" className="font-semibold text-tz-navy underline underline-offset-4">
+              See the FAQ
+            </Link>
+            .
           </p>
         </div>
       </section>

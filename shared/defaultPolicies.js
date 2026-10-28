@@ -6,43 +6,63 @@ export function defaultPolicies(brandName = brand.name) {
     shipping: {
       title: "Shipping policy",
       body: [
-        `${brandName} ships across India. Orders are typically packed within 1–2 business days after confirmation.`,
-        "Standard delivery is usually 5–10 business days depending on your pincode. You will receive tracking details by email once the courier picks up the parcel.",
-        "A delivery fee may apply below the free-shipping threshold shown at checkout. Remote or non-serviceable pincodes cannot be shipped.",
-        "Please ensure the shipping address and phone number are correct. Failed delivery due to an incomplete address may incur extra courier charges.",
+        `${brandName} offers free expedited shipping worldwide on every order.`,
+        "Orders ship with DHL Express, FedEx International Priority, UPS Express Saver, or Aramex International.",
+        "Every order is processed within 4–5 business days after payment. Custom orders can take longer.",
+        "USA, UK, Canada, and Europe: 4–6 business days. Australia and New Zealand: 5–7 business days. Asia and the Middle East: 4–6 business days. Rest of the world: 7–10 business days.",
+        "Every shipment is tracked. You receive a tracking number once the order is dispatched.",
+        "Items are packed in secure packaging for the journey.",
       ],
     },
     returns: {
       title: "Returns & refunds",
       body: [
-        "If an item arrives damaged, defective, or incorrect, contact us within 48 hours of delivery with photos so we can arrange a return or replacement.",
-        "Unused items in original condition may be eligible for return as stated at the time of purchase. Custom-made or heavily used leather goods may not be returnable.",
-        "Once we receive and inspect a return, refunds (if approved) go back to the original payment method. Cash-on-delivery refunds may be issued by bank transfer.",
-        "Advance / partial payments follow the notice shown at checkout if a parcel is refused or returned undelivered.",
+        "If you are not satisfied, you can return an item within 30 days of delivery.",
+        "The item must be unused, unworn, and in its original packaging. You pay the return shipping.",
+        "Once the return arrives and passes inspection, the refund is sent to the original payment method.",
+        "Custom-sized pieces are not returnable unless they are defective.",
       ],
     },
     privacy: {
-      title: "Privacy policy",
+      title: "Data privacy",
       body: [
-        `We collect the name, email, phone, address, and order details needed to run ${brandName} — accounts, checkout, shipping, and support.`,
-        "Payment card data is processed by our payment partner (when online payments are enabled). We do not store full card numbers on our servers.",
-        "We use cookies and similar storage for login, cart, and site preferences. We do not sell your personal data.",
-        "To update or delete account information, use My Account or email us via the Contact page.",
+        "We do not share your personal information with third parties, except where it is required to fulfil the order — for example with couriers such as DHL, FedEx, Aramex, and UPS.",
+        "Checkout runs on secure, encrypted platforms. We do not store your payment details.",
+        "Your name, phone, email, and address are used only to communicate about the order and to deliver it.",
+        "We do not reuse your details for unsolicited marketing.",
       ],
     },
     terms: {
-      title: "Terms of use",
+      title: "Other store policies",
       body: [
-        `By using ${brandName} you agree to shop in good faith, provide accurate details, and not misuse the site or our staff.`,
-        "Product colours and textures can vary slightly from photos because leather is a natural material. Prices and stock can change without notice.",
-        "We may refuse or cancel an order in case of pricing errors, suspected fraud, or stock issues, and will notify you if that happens.",
-        "These pages are provided for customer information. For a specific order, the details on that order and any written confirmation apply.",
+        "Orders can be cancelled within 12 hours of purchase. Once an order has been dispatched, it can no longer be cancelled.",
+        "Leather colour can shift slightly from the photos because of lighting and screen settings.",
+        "Custom sizing is available. Send a message before you buy. Custom items cannot be returned unless they are defective.",
+        "Customer support replies within 24 hours, Monday to Saturday.",
+      ],
+    },
+    other: {
+      title: "Other store policies",
+      body: [
+        "Orders can be cancelled within 12 hours of purchase. Once an order has been dispatched, it can no longer be cancelled.",
+        "Leather colour can shift slightly from the photos because of lighting and screen settings.",
+        "Custom sizing is available. Send a message before you buy. Custom items cannot be returned unless they are defective.",
+        "Customer support replies within 24 hours, Monday to Saturday.",
+      ],
+    },
+    warranty: {
+      title: "Warranty",
+      body: [
+        "Every item includes a 30-day limited warranty.",
+        "The warranty covers manufacturing defects: stitching, zippers, and lining damage that is not caused by misuse.",
+        "It does not cover normal wear, accidental damage, or damage from improper care.",
+        "If you find a defect within 30 days, contact us with clear photos and a short description. We will arrange a satisfactory solution.",
       ],
     },
   };
 }
 
-export const POLICY_SLUGS = ["shipping", "returns", "privacy", "terms"];
+export const POLICY_SLUGS = ["shipping", "returns", "privacy", "terms", "other", "warranty"];
 
 export function mergePolicies(stored) {
   const defaults = defaultPolicies();

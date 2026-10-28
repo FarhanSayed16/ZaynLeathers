@@ -1,111 +1,55 @@
-import React, { useContext } from "react";
+import { Link } from "react-router-dom";
 import Banner from "../components/Banner";
-import CategoryTiles from "../components/CategoryTiles";
-import LatestCollection from "../components/LatestCollection";
 import BestSeller from "../components/BestSeller";
-import CategoryCarousel from "../components/CategoryCarousel";
-import ForYou from "../components/ForYou";
-import InstagramSection from "../components/InstagramSection";
-import Review from "../components/Review";
-import VibeCTA from "../components/VibeCTA";
-import { ShopContext } from "../context/ShopContext";
+import ConnectCards from "../components/ConnectCards";
+import FaqList from "../components/FaqList";
+import HomeCategories from "../components/home/HomeCategories";
+import HomeCommunity from "../components/home/HomeCommunity";
+import HomeCustom from "../components/home/HomeCustom";
+import HomeProof from "../components/home/HomeProof";
+import HomeTalking from "../components/home/HomeTalking";
+import HomeTrustLine from "../components/home/HomeTrustLine";
+import { FAQ_GROUPS } from "../data/faq";
 import SEO from "../components/SEO";
 
-const Home = () => {
-  const { settings } = useContext(ShopContext);
+const faqPreview = [
+  "Is Zayn Leathers a trusted brand?",
+  "Do you ship worldwide?",
+  "How long does delivery take?",
+  "Can I return a jacket if it does not fit?",
+]
+  .map((question) => FAQ_GROUPS.flatMap((group) => group.items).find((item) => item.q === question))
+  .filter(Boolean);
 
-  const config = settings?.homeConfig || {
-    showHero: true,
-    showCategories: true,
-    showNewArrivals: true,
-    showBestSellers: true,
-    showInstagram: true,
-    showReviews: true,
-    newArrivalsTitle: "New Arrivals",
-    bestSellersTitle: "Best Selling Products",
-  };
+const Home = () => (
+  <div className="bg-white">
+    <SEO
+      title="Home"
+      description="Handcrafted genuine leather jackets for men and women. Free worldwide shipping from Zayn Leathers."
+    />
 
-  return (
-    <div className="bg-white">
-      <SEO
-        title="Home"
-        description="Crafted in leather. Made to last. Shop leather jackets, bags, and more at Zayn Leathers."
-      />
+    <Banner />
+    <HomeTrustLine />
+    <HomeCategories />
+    <HomeProof />
+    <HomeCustom />
+    <BestSeller title="Shop best sellers" subtitle="" />
+    <HomeCommunity />
+    <HomeTalking />
+    <ConnectCards />
 
-      {config.showHero !== false && <Banner />}
-
-      {config.showBestSellers !== false && (
-        <div data-aos="fade-up">
-          <BestSeller title={config.bestSellersTitle || "Best Selling Products"} />
-        </div>
-      )}
-
-      {config.showNewArrivals !== false && (
-        <div className="border-t border-gray-100" data-aos="fade-up">
-          <LatestCollection title={config.newArrivalsTitle || "New Arrivals"} />
-        </div>
-      )}
-
-      <div className="border-t border-gray-100" data-aos="fade-up">
-        <CategoryCarousel
-          title="Men's Leather Jackets"
-          subtitle="Bikers, bombers, and everyday leather"
-          department="men"
-          viewAllHref="/shop?department=men"
-        />
-      </div>
-
-      <div className="border-t border-gray-100" data-aos="fade-up">
-        <CategoryCarousel
-          title="Women's Leather"
-          subtitle="Jackets and essentials made to last"
-          department="women"
-          viewAllHref="/shop?department=women"
-        />
-      </div>
-
-      <div className="border-t border-gray-100" data-aos="fade-up">
-        <CategoryCarousel
-          title="Accessories"
-          subtitle="Bags, belts, wallets, and everyday leather"
-          department="accessories"
-          viewAllHref="/shop?department=accessories"
-        />
-      </div>
-
-      {config.showCategories !== false && (
-        <div className="border-t border-gray-100 bg-tz-cream/40" data-aos="fade-up">
-          <CategoryTiles />
-        </div>
-      )}
-
-      <div data-aos="fade-up">
-        <VibeCTA />
-      </div>
-
-      <section
-        className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 border-t border-gray-100"
-        data-aos="fade-up"
+    <section className="max-w-3xl mx-auto px-4 sm:px-6 py-14 sm:py-16 border-t border-gray-100">
+      <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-tz-navy/45 mb-2">Help</p>
+      <h2 className="font-display text-3xl sm:text-4xl text-tz-navy mb-6">Frequently asked questions</h2>
+      <FaqList groups={[{ id: "home-faq", title: "", items: faqPreview }]} />
+      <Link
+        to="/faq"
+        className="inline-block mt-6 text-sm font-semibold uppercase tracking-wide text-tz-navy underline underline-offset-4"
       >
-        <ForYou />
-      </section>
-
-      {config.showInstagram !== false && (
-        <section data-aos="fade-up">
-          <InstagramSection />
-        </section>
-      )}
-
-      {config.showReviews !== false && (
-        <section
-          className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pb-16 pt-2"
-          data-aos="fade-up"
-        >
-          <Review />
-        </section>
-      )}
-    </div>
-  );
-};
+        All questions
+      </Link>
+    </section>
+  </div>
+);
 
 export default Home;

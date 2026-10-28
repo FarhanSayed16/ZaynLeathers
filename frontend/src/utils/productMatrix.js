@@ -12,11 +12,12 @@ export function ensureSizeMatrix(product) {
   const sizes =
     Array.isArray(product.sizes) && product.sizes.length ? product.sizes : ["One Size"];
 
+  const qty = product.inStock === false ? 0 : 1;
   return sizes.map((size) => ({
     size: String(size),
     price: Number(product.price) || 0,
     oldPrice: product.oldPrice != null ? Number(product.oldPrice) : undefined,
-    qty: Number(product.availableQuantity) || 0,
+    qty,
   }));
 }
 

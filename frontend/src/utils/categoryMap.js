@@ -29,10 +29,17 @@ const DEFAULT_ALIASES = {
   "biker-jackets": ["biker-jackets", "women-biker-jackets"],
   "bomber-jackets": ["bomber-jackets", "women-bomber-jackets"],
   "sheepskin-jackets": ["sheepskin-jackets", "women-sheepskin-jackets"],
-  "leather-shirt-jackets": ["leather-shirt-jackets", "shirt-jackets", "suede-shirts"],
-  "double-breasted-coats": ["double-breasted-coats", "trench-coats"],
+  "leather-shirt-jackets": ["leather-shirt-jackets", "shirt-jackets", "suede-shirts", "women-leather-shirt-jackets"],
+  "double-breasted-coats": ["double-breasted-coats", "women-double-breasted-coats"],
+  "trench-coats": ["trench-coats", "women-trench-coats"],
   "wool-jackets": ["wool-jackets", "women-wool-jackets"],
   "oversized-jackets": ["oversized-jackets", "women-oversized-jackets"],
+  "leather-blazers": ["leather-blazers", "women-leather-blazers"],
+  "hooded-jackets": ["hooded-jackets", "women-hooded-jackets"],
+  "leather-coats": ["leather-coats", "women-leather-coats"],
+  "sheepskin-coats": ["sheepskin-coats", "women-sheepskin-coats"],
+  "leather-pants": ["leather-pants", "women-leather-pants"],
+  "leather-cushion-covers": ["leather-cushion-covers", "cushion-covers", "pillow-covers"],
 };
 
 /** Departments used for Shop chips / product.department */

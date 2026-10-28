@@ -567,6 +567,17 @@ function zayn_settings_page() {
         }
         update_option( 'zayn_category_tiles', wp_json_encode( $tiles ) );
 
+        $reels = [];
+        for ( $i = 0; $i < 6; $i++ ) {
+            $reels[] = [
+                'instagramLink' => esc_url_raw( wp_unslash( $_POST[ "zayn_reel_url_$i" ] ?? '' ) ),
+                'image'         => sanitize_text_field( wp_unslash( $_POST[ "zayn_reel_image_$i" ] ?? '' ) ),
+                'caption'       => sanitize_text_field( wp_unslash( $_POST[ "zayn_reel_caption_$i" ] ?? '' ) ),
+                'productLink'   => sanitize_text_field( wp_unslash( $_POST[ "zayn_reel_product_$i" ] ?? '' ) ),
+            ];
+        }
+        update_option( 'zayn_instagram_promos', wp_json_encode( $reels ) );
+
         echo '<div class="notice notice-success"><p>Settings saved.</p></div>';
     }
 
@@ -591,6 +602,10 @@ function zayn_settings_page() {
 
     $heroes = zayn_saved_list( 'zayn_hero_banners', zayn_default_heroes() );
     $tiles  = zayn_saved_list( 'zayn_category_tiles', zayn_default_category_tiles() );
+    $reels  = json_decode( (string) get_option( 'zayn_instagram_promos', '[]' ), true );
+    if ( ! is_array( $reels ) ) {
+        $reels = [];
+    }
 
     ?>
     <div class="wrap">
@@ -671,6 +686,23 @@ function zayn_settings_page() {
                         <label>Button<br><input type="text" class="regular-text" name="zayn_hero_cta_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $hero['ctaLabel'] ?? '' ); ?>" /></label>
                         <label style="margin-left:12px">Link<br><input type="text" class="regular-text" name="zayn_hero_link_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $hero['ctaLink'] ?? '' ); ?>" /></label><br><br>
                         <label><input type="checkbox" name="zayn_hero_active_<?php echo (int) $i; ?>" <?php checked( ! isset( $hero['isActive'] ) || $hero['isActive'] ); ?> /> Show this banner</label>
+                    </td>
+                </tr>
+                <?php endfor; ?>
+            </table>
+
+            <h2>Community reels</h2>
+            <p class="description">Paste an Instagram reel or post link. Optional poster image can be a full URL. Empty rows are ignored. These appear on the homepage as “Community in action”.</p>
+            <table class="form-table">
+                <?php for ( $i = 0; $i < 6; $i++ ) :
+                    $reel = $reels[ $i ] ?? []; ?>
+                <tr>
+                    <th>Reel <?php echo (int) $i + 1; ?></th>
+                    <td>
+                        <label>Instagram URL<br><input type="url" class="large-text" name="zayn_reel_url_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $reel['instagramLink'] ?? '' ); ?>" placeholder="https://www.instagram.com/reel/..." /></label><br><br>
+                        <label>Poster image URL<br><input type="text" class="large-text" name="zayn_reel_image_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $reel['image'] ?? '' ); ?>" /></label><br><br>
+                        <label>Caption<br><input type="text" class="large-text" name="zayn_reel_caption_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $reel['caption'] ?? '' ); ?>" /></label><br><br>
+                        <label>Product link<br><input type="text" class="regular-text" name="zayn_reel_product_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $reel['productLink'] ?? '' ); ?>" placeholder="/product/123" /></label>
                     </td>
                 </tr>
                 <?php endfor; ?>
