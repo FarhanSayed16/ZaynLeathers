@@ -12,7 +12,7 @@ const ProductAccordion = ({ title, children, defaultOpen = false }) => {
         onClick={() => setIsOpen((open) => !open)}
         className="flex w-full items-center justify-between gap-4 py-4 text-left"
       >
-        <span className="text-xs font-semibold uppercase tracking-[0.08em] text-tz-navy">
+        <span className="text-sm font-semibold tracking-wide text-tz-navy">
           {title}
         </span>
         <FaChevronDown
@@ -20,7 +20,7 @@ const ProductAccordion = ({ title, children, defaultOpen = false }) => {
         />
       </button>
       {isOpen && (
-        <div className="pb-6 text-sm leading-7 text-tz-navy/80">
+        <div className="pb-5 text-sm leading-7 text-tz-navy/80">
           {children}
         </div>
       )}

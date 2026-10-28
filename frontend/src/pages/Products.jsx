@@ -30,6 +30,7 @@ const Products = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [image, setImage] = useState('')
+  const [frameRatio, setFrameRatio] = useState(4 / 5)
   const [size, setSize] = useState('')
   const [showAddToCartPopup, setShowAddToCartPopup] = useState(false)
   const [isImageZoomed, setIsImageZoomed] = useState(false)
@@ -259,6 +260,19 @@ const Products = () => {
   }
 
   const copyBlocks = productCopyBlocks(productData.description, productData.name)
+  const pretty = (value) =>
+    String(value || "")
+      .replace(/-/g, " ")
+      .replace(/\b\w/g, (letter) => letter.toUpperCase())
+  const categoryLabel = productData.category ? pretty(productData.category) : ""
+  const departmentLabel = productData.department ? pretty(productData.department) : ""
+  const factRows = [
+    departmentLabel
+      ? ["Department", categoryLabel && categoryLabel.toLowerCase() !== departmentLabel.toLowerCase() ? `${departmentLabel} · ${categoryLabel}` : departmentLabel]
+      : null,
+    productData.material ? ["Material", productData.material] : null,
+    typeof productData.dimensions === "string" && productData.dimensions ? ["Dimensions", productData.dimensions] : null,
+  ].filter(Boolean)
   const detailRows = [
     productData.sku ? ["SKU", productData.sku] : null,
     productData.color ? ["Colour", productData.color] : null,
@@ -299,7 +313,8 @@ const Products = () => {
           <motion.div variants={itemVariants} className='flex-1 min-w-0 lg:sticky lg:top-24 lg:self-start'>
             <div className='flex flex-col gap-3'>
               <div
-                className='relative overflow-hidden bg-gray-50 aspect-[4/5]'
+                className='relative overflow-hidden bg-[#f3f1ee]'
+                style={{ aspectRatio: frameRatio }}
                 onTouchStart={onTouchStart}
                 onTouchMove={onTouchMove}
                 onTouchEnd={onTouchEnd}
@@ -311,9 +326,15 @@ const Products = () => {
                   width={900}
                   height={1100}
                   decoding="async"
-                  className={`w-full h-full object-cover transition-transform duration-300 ${
+                  className={`w-full h-full object-contain transition-transform duration-300 ${
                     isImageZoomed ? 'scale-150 cursor-zoom-out' : 'cursor-zoom-in'
                   }`}
+                  onLoad={(event) => {
+                    const { naturalWidth, naturalHeight } = event.currentTarget
+                    if (!naturalWidth || !naturalHeight) return
+                    const ratio = naturalWidth / naturalHeight
+                    setFrameRatio(Math.min(1.9, Math.max(0.72, ratio)))
+                  }}
                   onClick={(e) => {
                     e.stopPropagation()
                     setIsImageZoomed(!isImageZoomed)
@@ -370,7 +391,7 @@ const Products = () => {
                         height={80}
                         loading="lazy"
                         decoding="async"
-                        className="w-16 h-16 lg:w-[72px] lg:h-[72px] object-cover block"
+                        className="w-16 h-16 lg:w-[72px] lg:h-[72px] object-contain bg-[#f3f1ee] block"
                       />
                     </button>
                   ))}
@@ -419,41 +440,15 @@ const Products = () => {
               </motion.div>
             )}
 
-            {/* Material & details */}
-            {(productData.material || productData.dimensions || productData.department) && (
-              <motion.div variants={itemVariants} className="grid grid-cols-2 gap-px bg-tz-navy/10 border border-tz-navy/10">
-                {productData.department && (
-                  <div className="bg-white px-3.5 py-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-tz-navy/45">Department</p>
-                    <p className="mt-1 text-sm text-tz-navy capitalize leading-snug">
-                      {productData.department.replace(/-/g, " ")}
-                      {productData.category &&
-                      productData.category.replace(/-/g, " ").toLowerCase() !==
-                        String(productData.department).replace(/-/g, " ").toLowerCase() ? (
-                        <span className="text-tz-navy/55"> · {String(productData.category).replace(/-/g, " ")}</span>
-                      ) : null}
-                    </p>
+            {factRows.length > 0 && (
+              <dl className="flex flex-wrap gap-x-8 gap-y-3">
+                {factRows.map(([label, value]) => (
+                  <div key={label}>
+                    <dt className="text-[11px] font-medium uppercase tracking-[0.16em] text-tz-navy/40">{label}</dt>
+                    <dd className="mt-1 text-sm text-tz-navy">{value}</dd>
                   </div>
-                )}
-                {productData.material && (
-                  <div className="bg-white px-3.5 py-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-tz-navy/45">Material</p>
-                    <p className="mt-1 text-sm text-tz-navy leading-snug">{productData.material}</p>
-                  </div>
-                )}
-                {typeof productData.dimensions === "string" && productData.dimensions && (
-                  <div className="bg-white px-3.5 py-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-tz-navy/45">Dimensions</p>
-                    <p className="mt-1 text-sm text-tz-navy leading-snug">{productData.dimensions}</p>
-                  </div>
-                )}
-                {productData.gender && (
-                  <div className="bg-white px-3.5 py-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-tz-navy/45">Fit</p>
-                    <p className="mt-1 text-sm text-tz-navy capitalize leading-snug">{productData.gender}</p>
-                  </div>
-                )}
-              </motion.div>
+                ))}
+              </dl>
             )}
 
             {/* Size Selection */}
@@ -539,25 +534,36 @@ const Products = () => {
                 </svg>
                 {totalStock <= 0 ? "SOLD OUT" : "ADD TO CART"}
               </button>
-              <Link
-                to="/custom-jackets"
-                className="group flex items-center justify-center gap-1.5 text-sm text-tz-navy/80 hover:text-tz-navy underline-offset-4 hover:underline"
-              >
-                Need a custom fit?
-                <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
-              </Link>
-              {brand.contact.whatsappUrl ? (
-                <a
-                  href={`${brand.contact.whatsappUrl}?text=${encodeURIComponent(`Hi, I have a question about ${productData.name}`)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-1.5 text-sm text-tz-navy/80 hover:text-tz-navy"
+              <div className="grid sm:grid-cols-2 gap-2">
+                <Link
+                  to="/custom-jackets"
+                  className="flex items-center justify-between gap-3 border border-tz-navy/15 bg-white px-4 py-3 text-left"
                 >
-                  <FaWhatsapp size={15} />
-                  Chat on WhatsApp · {brand.contact.whatsapp}
-                </a>
-              ) : null}
-              <p className="text-[11px] text-tz-navy/50 text-center">
+                  <span>
+                    <span className="block text-sm font-semibold text-tz-navy">Need a custom fit?</span>
+                    <span className="mt-0.5 block text-xs text-tz-navy/55">We cut it to your measurements</span>
+                  </span>
+                  <span aria-hidden className="text-tz-navy/40">→</span>
+                </Link>
+                {brand.contact.whatsappUrl ? (
+                  <a
+                    href={`${brand.contact.whatsappUrl}?text=${encodeURIComponent(`Hi, I have a question about ${productData.name}`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between gap-3 border border-[#128C7E]/25 bg-[#128C7E]/[0.06] px-4 py-3 text-left"
+                  >
+                    <span>
+                      <span className="flex items-center gap-1.5 text-sm font-semibold text-tz-navy">
+                        <FaWhatsapp className="text-[#128C7E]" size={15} />
+                        Chat on WhatsApp
+                      </span>
+                      <span className="mt-0.5 block text-xs text-tz-navy/55">{brand.contact.whatsapp}</span>
+                    </span>
+                    <span aria-hidden className="text-tz-navy/40">→</span>
+                  </a>
+                ) : null}
+              </div>
+              <p className="text-xs text-tz-navy/50 text-center">
                 Cash on delivery · 30-day returns · Free shipping worldwide
               </p>
             </div>
@@ -607,15 +613,31 @@ const Products = () => {
               </div>
             </motion.div>
 
+            {detailRows.length > 0 && (
+              <section className="border border-tz-navy/10 bg-white">
+                <h2 className="px-4 pt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-tz-navy/45">
+                  Details
+                </h2>
+                <dl className="mt-2">
+                  {detailRows.map(([label, value]) => (
+                    <div key={label} className="grid grid-cols-[6.5rem_1fr] gap-3 px-4 py-3 border-t border-tz-navy/10">
+                      <dt className="text-xs text-tz-navy/45 pt-0.5">{label}</dt>
+                      <dd className="text-sm text-tz-navy leading-relaxed">{value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </section>
+            )}
+
             <div className="border-t border-tz-navy/10">
               <ProductAccordion title="Description" defaultOpen>
-                <div className="space-y-3">
+                <div className="space-y-3 text-[15px] leading-7 text-tz-navy/85">
                   {copyBlocks.map((block, index) =>
                     block.type === "ul" ? (
                       <ul key={index} className="space-y-1.5">
                         {block.items.map((item) => (
                           <li key={item} className="flex gap-2">
-                            <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-tz-navy/40" />
+                            <span className="mt-2.5 h-1 w-1 shrink-0 rounded-full bg-tz-navy/40" />
                             <span>{item}</span>
                           </li>
                         ))}
@@ -624,41 +646,44 @@ const Products = () => {
                       <p key={index}>{block.text}</p>
                     )
                   )}
-                  {detailRows.length > 0 && (
-                    <dl className="mt-4 border border-tz-navy/10 bg-white">
-                      {detailRows.map(([label, value]) => (
-                        <div key={label} className="grid grid-cols-[5.5rem_1fr] gap-3 px-3.5 py-3 border-b border-tz-navy/10 last:border-b-0">
-                          <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-tz-navy/45 pt-0.5">
-                            {label}
-                          </dt>
-                          <dd className="text-sm text-tz-navy leading-relaxed">{value}</dd>
-                        </div>
-                      ))}
-                    </dl>
-                  )}
                 </div>
               </ProductAccordion>
 
               <ProductAccordion title="Size guide">
-                <div className="space-y-2">
-                  {productData.department === 'bags' ? (
-                    <>
-                      <p>Bag sizes are listed as approximate outer dimensions on the product (H × W × D).</p>
-                      <p>Laptop bags: match the listed laptop size. Crossbody and slings fit daily essentials, not a 15" laptop unless stated.</p>
-                    </>
-                  ) : productData.department === 'accessories' ? (
-                    <>
-                      <p>Belts: measure your usual waist over trousers, or pick the size that matches your jean waist.</p>
-                      <p>Wallets: one size unless noted.</p>
-                    </>
-                  ) : (
-                    <>
-                      <p>Leather jackets are cut true to size. If you are between sizes, size up for a layer underneath.</p>
-                      <p>Chest: measure around the fullest part. Compare with the size chart on the garment label when delivered.</p>
-                      <p>Indian sizes: S 36–38" chest · M 38–40" · L 40–42" · XL 42–44" · XXL 44–46" (approx.).</p>
-                    </>
-                  )}
-                </div>
+                {productData.department === "bags" ? (
+                  <div className="space-y-2">
+                    <p>Bag sizes are listed as approximate outer dimensions on the product (H × W × D).</p>
+                    <p>Laptop bags: match the listed laptop size. Crossbody and slings fit daily essentials, not a 15" laptop unless stated.</p>
+                  </div>
+                ) : productData.department === "accessories" ? (
+                  <div className="space-y-2">
+                    <p>Belts: measure your usual waist over trousers, or pick the size that matches your jean waist.</p>
+                    <p>Wallets: one size unless noted.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <p>Measure around the fullest part of the chest. Jackets are cut true to size. Between sizes, choose the larger one if you want a layer underneath.</p>
+                    <div className="overflow-hidden border border-tz-navy/10 bg-white">
+                      <div className="grid grid-cols-2 bg-[#f7f4ef] text-[11px] font-semibold uppercase tracking-[0.12em] text-tz-navy/45">
+                        <div className="px-3 py-2">Size</div>
+                        <div className="px-3 py-2">Chest</div>
+                      </div>
+                      {[
+                        ["S", "36–38 in"],
+                        ["M", "38–40 in"],
+                        ["L", "40–42 in"],
+                        ["XL", "42–44 in"],
+                        ["2XL", "44–46 in"],
+                      ].map(([sizeLabel, chest]) => (
+                        <div key={sizeLabel} className="grid grid-cols-2 border-t border-tz-navy/10 text-sm">
+                          <div className="px-3 py-2.5 font-semibold text-tz-navy">{sizeLabel}</div>
+                          <div className="px-3 py-2.5 text-tz-navy/80">{chest}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-tz-navy/60">3XL is cut larger than 2XL. The photos on this page also include the maker’s chart.</p>
+                  </div>
+                )}
               </ProductAccordion>
 
               <ProductAccordion title="Returns & exchange">

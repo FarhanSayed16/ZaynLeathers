@@ -206,7 +206,7 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-tz-cream px-4 py-10">
+    <div className="flex justify-center bg-tz-cream px-4 py-6 sm:py-12">
       <div className="w-full max-w-sm sm:max-w-md bg-white rounded-2xl shadow-xl p-6">
         <div className="text-center mb-6">
           <div className="w-14 h-14 bg-tz-navy rounded-xl flex items-center justify-center mx-auto mb-3">
