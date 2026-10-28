@@ -31,6 +31,15 @@ function mapReview(wc) {
  * Fetch reviews for a specific product.
  * @param {string} productId
  */
+export async function fetchRecentReviews(limit = 6) {
+  const url = wcUrl("products/reviews", {
+    per_page: limit,
+    status: "approved",
+  });
+  const reviews = await request(url);
+  return (Array.isArray(reviews) ? reviews : []).map(mapReview);
+}
+
 export async function fetchProductReviews(productId) {
   const url = wcUrl("products/reviews", {
     product: productId,

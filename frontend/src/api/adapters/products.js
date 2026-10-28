@@ -215,7 +215,7 @@ async function withVariationStock(products) {
   return products;
 }
 
-export async function fetchProducts({ perPage = 100, page = 1 } = {}) {
+export async function fetchProducts({ perPage = 100, page = 1, hydrateVariations = false } = {}) {
   const url = wcUrl("products", {
     per_page: perPage,
     page,
@@ -225,7 +225,9 @@ export async function fetchProducts({ perPage = 100, page = 1 } = {}) {
   });
   const products = await request(url);
   const mapped = products.map(mapProduct);
-  await withVariationStock(mapped);
+  // Size stock is loaded on the product page. Doing it for every listing
+  // would fire one extra request per jacket once the full catalog is in.
+  if (hydrateVariations) await withVariationStock(mapped);
   return mapped;
 }
 
@@ -248,7 +250,7 @@ export async function fetchProduct(productId) {
   const url = wcUrl(`products/${productId}`);
   const wc = await request(url);
   const mapped = mapProduct(wc);
-  await withVariationStock(mapped);
+  await withVariationStock([mapped]);
   return mapped;
 }
 
@@ -265,7 +267,6 @@ export async function fetchProductsByCategory(categorySlug) {
   });
   const products = await request(url);
   const mapped = products.map(mapProduct);
-  await withVariationStock(mapped);
   return mapped;
 }
 
@@ -277,7 +278,6 @@ export async function searchProducts(query) {
   });
   const products = await request(url);
   const mapped = products.map(mapProduct);
-  await withVariationStock(mapped);
   return mapped;
 }
 

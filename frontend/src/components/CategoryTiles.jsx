@@ -18,25 +18,30 @@ const fallbackTiles = [
     image: brand.media.categories.women || brand.media.categories.totes,
     order: 1,
   },
-  {
-    label: "Accessories",
-    link: "/shop?department=accessories",
-    image: brand.media.categories.accessories || brand.media.categories.bags,
-    order: 2,
-  },
-  {
-    label: "Kids",
-    link: "/shop?department=kids",
-    image: brand.media.categories.kids || brand.media.categories.accessories,
-    order: 3,
-  },
-];
+    {
+      label: "Accessories",
+      link: "/shop?department=accessories",
+      image: brand.media.categories.accessories || brand.media.categories.bags,
+      order: 2,
+    },
+  ];
 
 const CategoryTiles = () => {
   const { settings } = useContext(ShopContext);
   const tiles = useMemo(() => {
+    const hidden = new Set(
+      (brand.catalog?.hiddenDepartments || []).map((item) => String(item).toLowerCase())
+    );
+    const hideDepartment = (tile) => {
+      const label = String(tile?.label || "").toLowerCase();
+      const link = String(tile?.link || "").toLowerCase();
+      if (hidden.has(label)) return false;
+      const dept = new URLSearchParams(link.split("?")[1] || "").get("department");
+      return !(dept && hidden.has(dept));
+    };
     if (settings?.categoryTiles?.length > 0) {
       return [...settings.categoryTiles]
+        .filter(hideDepartment)
         .sort((a, b) => (a.order || 0) - (b.order || 0))
         .map((tile, index) => ({
           ...tile,
@@ -46,7 +51,7 @@ const CategoryTiles = () => {
             brand.media.placeholder,
         }));
     }
-    return fallbackTiles;
+    return fallbackTiles.filter(hideDepartment);
   }, [settings?.categoryTiles]);
 
   return (
@@ -54,11 +59,15 @@ const CategoryTiles = () => {
       <div className="text-center mb-8">
         <Title text1={"Shop by"} text2={"category"} eyebrow="Collections" />
         <p className="text-sm text-tz-navy/50 mt-1" data-aos="fade-up" data-aos-delay="40">
-          Jackets, accessories, and leather essentials
+          Jackets for men and women
         </p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 max-w-6xl mx-auto">
+      <div
+        className={`grid grid-cols-1 gap-3 sm:gap-4 max-w-6xl mx-auto ${
+          tiles.length > 2 ? "sm:grid-cols-3" : "sm:grid-cols-2"
+        }`}
+      >
         {tiles.map((cat, index) => (
           <Link
             key={`${cat.label}-${index}`}

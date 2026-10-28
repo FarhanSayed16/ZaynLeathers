@@ -23,7 +23,13 @@ export default function HeroSlide({
       <img
         src={image}
         alt={displayTitle || brand.name}
-        className="absolute inset-0 w-full h-full object-cover object-[72%_center] sm:object-right scale-105 animate-hero-zoom"
+        className={`absolute inset-0 w-full h-full object-cover scale-105 animate-hero-zoom ${
+          String(image).includes("banner-4")
+            ? "object-center"
+            : String(image).includes("banner-2")
+              ? "object-[78%_center]"
+              : "object-[72%_center] sm:object-right"
+        }`}
         loading={isPriority ? "eager" : "lazy"}
         fetchpriority={isPriority ? "high" : "auto"}
         onError={(e) => {

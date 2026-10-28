@@ -178,6 +178,12 @@ export async function getOrder(orderId, token) {
 // Internal helpers
 // ────────────────────────────────────────────────
 
+function wooCountry(value) {
+  const raw = String(value || "IN").trim();
+  if (!raw || raw.toLowerCase() === "india") return "IN";
+  return raw.length === 2 ? raw.toUpperCase() : "IN";
+}
+
 function buildOrderPayload(orderData, paymentMethod) {
   const { address, items, couponCode, billing } = orderData;
 
@@ -189,7 +195,7 @@ function buildOrderPayload(orderData, paymentMethod) {
     city: address.city || "",
     state: address.state || "",
     postcode: address.zipcode || "",
-    country: address.country === "India" ? "IN" : address.country || "IN",
+    country: wooCountry(address.country),
     email: address.email || "",
     phone: address.phone || "",
   };
@@ -202,7 +208,7 @@ function buildOrderPayload(orderData, paymentMethod) {
     city: address.city || "",
     state: address.state || "",
     postcode: address.zipcode || "",
-    country: address.country === "India" ? "IN" : address.country || "IN",
+    country: wooCountry(address.country),
   };
 
   const lineItems = items.map((item) => ({
@@ -221,6 +227,13 @@ function buildOrderPayload(orderData, paymentMethod) {
     billing: wcBilling,
     shipping: wcShipping,
     line_items: lineItems,
+    shipping_lines: [
+      {
+        method_id: "free_shipping",
+        method_title: "Free expedited shipping",
+        total: "0",
+      },
+    ],
     meta_data: [],
   };
 

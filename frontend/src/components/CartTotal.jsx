@@ -7,7 +7,7 @@ import Title from './Title'
  * Order total = subtotal − discount + shipping.
  */
 const CartTotal = () => {
-  const { formatPrice, getCartAmount, appliedCoupon, getShippingFee, settings } = useContext(ShopContext)
+  const { formatPrice, getCartAmount, appliedCoupon, getShippingFee } = useContext(ShopContext)
 
   const subTotal = getCartAmount();
   const discount = !appliedCoupon
@@ -17,8 +17,6 @@ const CartTotal = () => {
       : Math.round((Number(appliedCoupon.discount) / 100) * subTotal);
   const shipping = getShippingFee ? getShippingFee(subTotal - discount) : 0;
   const total = subTotal === 0 ? 0 : subTotal + shipping - discount;
-  const threshold = Number(settings?.freeShippingThreshold) || 0;
-  const remaining = threshold > 0 ? Math.max(0, threshold - (subTotal - discount)) : 0;
 
   return (
     <div className='w-full'>
@@ -26,24 +24,10 @@ const CartTotal = () => {
         <Title text1={"CART"} text2={"TOTAL"} />
       </div>
 
-      {threshold > 0 && subTotal > 0 && (
-        <div className="mb-4">
-          {remaining > 0 ? (
-            <p className="text-xs text-tz-navy/70 mb-1">
-              Add {formatPrice(remaining)} more for free shipping
-            </p>
-          ) : (
-            <p className="text-xs text-green-700 mb-1">You have free shipping on this order</p>
-          )}
-          <div className="h-1.5 bg-gray-100 overflow-hidden">
-            <div
-              className="h-full bg-tz-navy transition-[width] duration-300"
-              style={{
-                width: `${Math.min(100, ((threshold - remaining) / threshold) * 100)}%`,
-              }}
-            />
-          </div>
-        </div>
+      {subTotal > 0 && (
+        <p className="text-xs text-tz-navy/70 mb-4">
+          Free expedited shipping worldwide
+        </p>
       )}
 
       <div className='space-y-0 text-sm sm:text-base'>
