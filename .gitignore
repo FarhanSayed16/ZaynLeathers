@@ -5,3 +5,17 @@ node_modules
 backend/uploads/
 _archive/
 organized_images/
+
+# Local import source. Live product photos are on zaynleather.com, not in this repo.
+zaynleather_store_products/
+
+# Design references and screenshots. Not served by the site.
+/images/
+
+# Review spreadsheet and the standalone embed. The site uses frontend/public/reviews/.
+/reviews/
+
+# Catalog import progress
+scripts/*.jsonl
+scripts/*.log
+scripts/woo_import_log.json
