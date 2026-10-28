@@ -29,6 +29,8 @@ const Register = lazy(() => import("./pages/Register"));
 const Account = lazy(() => import("./pages/Account"));
 const Policy = lazy(() => import("./pages/Policy"));
 const CustomJackets = lazy(() => import("./pages/CustomJackets"));
+const Faq = lazy(() => import("./pages/Faq"));
+const Reviews = lazy(() => import("./pages/Reviews"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const ScrollToTop = () => {
@@ -87,6 +89,8 @@ const App = () => {
             <Route path="/womens" element={<Navigate to="/shop?department=women" replace />} />
             <Route path="/collection" element={<Navigate to="/shop" replace />} />
             <Route path="/about" element={<About />} />
+            <Route path="/faq" element={<Faq />} />
+            <Route path="/reviews" element={<Reviews />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/product/:productId" element={<Products />} />
             <Route path="/cart" element={<Cart />} />

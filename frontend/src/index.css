@@ -188,6 +188,32 @@ a.active hr {
   animation: slideIn 0.3s ease-out;
 }
 
+@keyframes quote-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+.animate-quote-in {
+  animation: quote-in 0.35s ease;
+}
+
+@keyframes review-dot {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.animate-review-dot {
+  transform-origin: left center;
+  animation: review-dot 6s linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-quote-in,
+  .animate-review-dot {
+    animation: none;
+  }
+}
+
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }

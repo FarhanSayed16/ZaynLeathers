@@ -334,6 +334,18 @@ export async function validateCoupon(code, amount) {
 
 /* ── Reviews ──────────────────────────────────────────────── */
 
+export async function getRecentReviews(limit = 6) {
+  if (!isWooMode) return [];
+  const reviews = await wooReviews.fetchRecentReviews(limit);
+  return reviews.map((r) => ({
+    _id: r._id,
+    name: r.reviewer,
+    comment: r.reviewText || "",
+    rating: r.rating,
+    productId: r.productId,
+  }));
+}
+
 export async function getProductReviews(productId) {
   if (isWooMode) {
     const reviews = await wooReviews.fetchProductReviews(productId);

@@ -29,14 +29,21 @@ function mapCategory(wc) {
 }
 
 export async function fetchCategories() {
-  const url = wcUrl("products/categories", {
-    per_page: 100,
-    hide_empty: false,
-    orderby: "id",
-    order: "asc",
-  });
-
-  const cats = await request(url);
+  const cats = [];
+  let page = 1;
+  while (true) {
+    const url = wcUrl("products/categories", {
+      per_page: 100,
+      page,
+      hide_empty: false,
+      orderby: "id",
+      order: "asc",
+    });
+    const batch = await request(url);
+    cats.push(...batch);
+    if (!Array.isArray(batch) || batch.length < 100) break;
+    page += 1;
+  }
   return cats.map(mapCategory);
 }
 
