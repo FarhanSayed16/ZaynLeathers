@@ -9,6 +9,7 @@ import {
   FaTimes,
   FaSearch,
   FaChevronDown,
+  FaWhatsapp,
 } from "react-icons/fa";
 import brand from "../brand";
 import CurrencySelector from "./CurrencySelector";
@@ -19,7 +20,6 @@ const FALLBACK_NAV = [
   { name: "New Arrivals", label: "New Arrivals", path: "/shop?sort=newest" },
   { name: "Women", label: "Women", path: "/shop?department=women", mega: "women" },
   { name: "Accessories", label: "Accessories", path: "/shop?department=accessories", mega: "accessories" },
-  { name: "Kids", label: "Kids", path: "/shop?department=kids" },
   { name: "Movie Jackets", label: "Movie Jackets", path: "/shop?category=movie-jackets" },
   { name: "Custom Leather Jackets", label: "Custom Leather Jackets", short: "Custom", path: "/custom-jackets", highlight: true },
   { name: "Contact", label: "Contact Us", path: "/contact" },
@@ -110,10 +110,23 @@ const Navbar = () => {
 
   const navLinks = useMemo(() => {
     const raw = brand.catalog?.nav?.length ? brand.catalog.nav : FALLBACK_NAV;
-    return raw.map((link) => ({
-      ...link,
-      label: link.label || link.name || "Link",
-    }));
+    const hidden = new Set(
+      (brand.catalog?.hiddenDepartments || []).map((item) => String(item).toLowerCase())
+    );
+    return raw
+      .filter((link) => {
+        const label = String(link.label || link.name || "").toLowerCase();
+        const dept = new URLSearchParams(String(link.path || "").split("?")[1] || "").get(
+          "department"
+        );
+        if (label && hidden.has(label)) return false;
+        if (dept && hidden.has(dept.toLowerCase())) return false;
+        return true;
+      })
+      .map((link) => ({
+        ...link,
+        label: link.label || link.name || "Link",
+      }));
   }, []);
 
   const cartTotal = formatPrice ? formatPrice(getCartAmount?.() || 0) : `₹${getCartAmount?.() || 0}`;
@@ -246,25 +259,35 @@ const Navbar = () => {
       }
 
       return (
-        <NavLink
-          key={link.path + link.label}
-          to={link.path}
-          className={`${linkClass(active, link.highlight)} ${
-            link.path === "/contact" ? "max-xl:hidden" : ""
-          }`}
-        >
-          {link.short ? (
-            <>
-              <span className="xl:hidden">{link.short}</span>
-              <span className="hidden xl:inline">{link.label}</span>
-            </>
-          ) : (
-            link.label
-          )}
-          {active ? (
-            <span className="absolute left-1.5 right-1.5 bottom-0 h-[2px] bg-tz-navy" />
+        <span key={link.path + link.label} className="inline-flex items-center shrink-0">
+          <NavLink
+            to={link.path}
+            className={linkClass(active, link.highlight)}
+          >
+            {link.short ? (
+              <>
+                <span className="xl:hidden">{link.short}</span>
+                <span className="hidden xl:inline">{link.label}</span>
+              </>
+            ) : (
+              link.label
+            )}
+            {active ? (
+              <span className="absolute left-1.5 right-1.5 bottom-0 h-[2px] bg-tz-navy" />
+            ) : null}
+          </NavLink>
+          {link.path === "/contact" && brand.contact.whatsappUrl ? (
+            <a
+              href={`${brand.contact.whatsappUrl}?text=${encodeURIComponent("Hi, I would like to place an order with Zayn Leathers.")}`}
+              target="_blank"
+              rel="noreferrer"
+              aria-label="WhatsApp"
+              className="inline-flex items-center justify-center w-8 h-8 ml-0.5 text-[#128C7E] hover:bg-[#128C7E]/10 rounded-full"
+            >
+              <FaWhatsapp size={16} />
+            </a>
           ) : null}
-        </NavLink>
+        </span>
       );
     });
 
@@ -535,16 +558,27 @@ const Navbar = () => {
                   }
 
                   return (
-                    <NavLink
-                      key={link.path + link.label}
-                      to={link.path}
-                      onClick={() => setDrawerOpen(false)}
-                      className={`block px-4 py-3.5 border-b border-gray-100 text-sm font-semibold uppercase tracking-wide ${
-                        active ? "bg-gray-50 text-tz-navy" : "text-tz-navy/80"
-                      } ${link.highlight ? "text-tz-navy" : ""}`}
-                    >
-                      {link.label}
-                    </NavLink>
+                    <div key={link.path + link.label}>
+                      <NavLink
+                        to={link.path}
+                        onClick={() => setDrawerOpen(false)}
+                        className={`block px-4 py-3.5 border-b border-gray-100 text-sm font-semibold uppercase tracking-wide ${
+                          active ? "bg-gray-50 text-tz-navy" : "text-tz-navy/80"
+                        } ${link.highlight ? "text-tz-navy" : ""}`}
+                      >
+                        {link.label}
+                      </NavLink>
+                      {link.path === "/contact" && brand.contact.whatsappUrl ? (
+                        <a
+                          href={`${brand.contact.whatsappUrl}?text=${encodeURIComponent("Hi, I would like to place an order with Zayn Leathers.")}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center gap-2 px-4 py-3.5 border-b border-gray-100 text-sm font-semibold text-[#128C7E]"
+                        >
+                          <FaWhatsapp size={14} /> WhatsApp
+                        </a>
+                      ) : null}
+                    </div>
                   );
                 })}
                 <Link

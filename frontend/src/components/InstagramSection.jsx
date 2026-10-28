@@ -51,7 +51,7 @@ const InstagramSection = () => {
       </div>
 
       <div className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
           {displayPromos.map((promo) => (
             <div
               key={promo._id}

@@ -391,17 +391,7 @@ const ShopContextProvider = (props) => {
     [selectedCurrency, exchangeRates]
   );
 
-  const getShippingFee = useCallback(
-    (subtotal) => {
-      const amount = Number(subtotal) || 0;
-      const threshold = Number(settings?.freeShippingThreshold);
-      if (Number.isFinite(threshold) && threshold > 0 && amount >= threshold) {
-        return 0;
-      }
-      return delivery_fee;
-    },
-    [settings, delivery_fee]
-  );
+  const getShippingFee = useCallback(() => 0, []);
 
   const value = useMemo(
     () => ({

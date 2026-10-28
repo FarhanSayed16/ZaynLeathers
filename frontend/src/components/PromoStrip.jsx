@@ -4,6 +4,7 @@ import { ShopContext } from "../context/ShopContext";
 import brand from "../brand";
 
 const WRONG_BRAND = /afiya|afhiya/i;
+const OLD_THRESHOLD = /2[,.]?999|above ₹|free shipping on orders above/i;
 
 /**
  * Slim always-visible promo bar.
@@ -19,7 +20,7 @@ const PromoStrip = () => {
   let fromSettings = null;
   if (settings?.promoStrip?.isActive && settings.promoStrip.message) {
     const msg = String(settings.promoStrip.message);
-    if (!WRONG_BRAND.test(msg)) {
+    if (!WRONG_BRAND.test(msg) && !OLD_THRESHOLD.test(msg)) {
       fromSettings = {
         message: msg,
         link: settings.promoStrip.link || "/shop",

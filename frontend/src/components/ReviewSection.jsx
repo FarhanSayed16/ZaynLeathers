@@ -4,8 +4,9 @@ import { FaStar, FaRegStar } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { ShopContext } from "../context/ShopContext";
 import * as shopApi from "../api/shopApi";
+import { itemIdFromSku, loadCustomerReviews, reviewsForItem } from "../api/customerReviews";
 
-const ReviewSection = ({ productId }) => {
+const ReviewSection = ({ productId, sku }) => {
   const { token, user } = useContext(ShopContext);
   const [reviews, setReviews] = useState([]);
   const [formData, setFormData] = useState({ comment: "", rating: 0 });
@@ -14,17 +15,32 @@ const ReviewSection = ({ productId }) => {
 
   useEffect(() => {
     fetchReviews();
-  }, [productId]);
+  }, [productId, sku]);
 
   const fetchReviews = async () => {
+    let storeReviews = [];
     try {
       const list = await shopApi.getProductReviews(productId);
-      setReviews(Array.isArray(list) ? list : []);
-      calculateAverage(Array.isArray(list) ? list : []);
+      storeReviews = Array.isArray(list) ? list : [];
     } catch {
-      setReviews([]);
-      setAverageRating(0);
+      storeReviews = [];
     }
+    let matched = [];
+    try {
+      const data = await loadCustomerReviews();
+      matched = reviewsForItem(data?.reviews, itemIdFromSku(sku));
+    } catch {
+      matched = [];
+    }
+    const seen = new Set();
+    const combined = [...matched, ...storeReviews].filter((review) => {
+      const key = String(review.comment || "").trim().toLowerCase();
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    setReviews(combined);
+    calculateAverage(combined);
   };
 
   const calculateAverage = (reviewData) => {
