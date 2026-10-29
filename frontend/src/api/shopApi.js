@@ -41,9 +41,9 @@ async function nodePost(path, body, token) {
 
 /* ── Products ─────────────────────────────────────────────── */
 
-export async function listProducts() {
+export async function listProducts(onPage) {
   if (isWooMode) {
-    const products = await wooProducts.fetchAllProducts();
+    const products = await wooProducts.fetchAllProducts(onPage);
     return { success: true, products };
   }
   return nodeGet("/api/product/list");

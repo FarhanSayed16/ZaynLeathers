@@ -6,7 +6,7 @@ import { isBestsellerProduct } from "../utils/categoryMap";
 
 const BestSeller = ({ title = "Best Selling Products", subtitle = "" }) => {
   const [bestSeller, setBestSeller] = useState([]);
-  const { products, settings } = useContext(ShopContext);
+  const { products, productsLoading, settings } = useContext(ShopContext);
 
   useEffect(() => {
     const listed = dedupeProductsByStyle(products);
@@ -32,6 +32,7 @@ const BestSeller = ({ title = "Best Selling Products", subtitle = "" }) => {
       title={title}
       subtitle={subtitle}
       products={bestSeller}
+      emptyText={productsLoading && !products.length ? "Loading the collection…" : "No products yet"}
       viewAllHref="/shop"
     />
   );

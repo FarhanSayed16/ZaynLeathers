@@ -35,6 +35,7 @@ const ShopContextProvider = (props) => {
   /** Kept for pages that still append paths in Node mode; Woo mode = site URL. */
   const backendUrl = getApiBase();
   const [products, setProduucts] = useState([]);
+  const [productsLoading, setProductsLoading] = useState(true);
   const [categories, setCategories] = useState([]);
   const [categoryTree, setCategoryTree] = useState([]);
   const [wishlistItems, setWishlistItems] = useState([]);
@@ -161,8 +162,12 @@ const ShopContextProvider = (props) => {
   }, [cartItems, products]);
 
   const getProductsData = useCallback(async () => {
+    setProductsLoading(true);
     try {
-      const response = await shopApi.listProducts();
+      const response = await shopApi.listProducts((next) => {
+        setProduucts(next);
+        setProductsLoading(false);
+      });
       if (response.success) {
         setProduucts(response.products);
       } else {
@@ -170,7 +175,9 @@ const ShopContextProvider = (props) => {
       }
     } catch (error) {
       console.log(error);
-      toast.error(error.message);
+      toast.error(error.message || "Could not load products");
+    } finally {
+      setProductsLoading(false);
     }
   }, []);
 
@@ -396,6 +403,7 @@ const ShopContextProvider = (props) => {
   const value = useMemo(
     () => ({
       products,
+      productsLoading,
       delivery_fee,
       navigate,
       search,
@@ -436,6 +444,7 @@ const ShopContextProvider = (props) => {
     }),
     [
       products,
+      productsLoading,
       delivery_fee,
       navigate,
       search,

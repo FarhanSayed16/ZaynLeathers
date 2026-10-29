@@ -38,7 +38,7 @@ function isInStock(item) {
 
 const Shop = () => {
   const [filterProducts, setFilterProducts] = useState([]);
-  const { products, search, setSearch, categories, categoryTree, formatPrice } = useContext(ShopContext);
+  const { products, productsLoading, search, setSearch, categories, categoryTree, formatPrice } = useContext(ShopContext);
   const [searchParams, setSearchParams] = useSearchParams();
   const [showFilter, setShowFilter] = useState(false);
   const [category, setCategory] = useState([]);
@@ -49,7 +49,6 @@ const Shop = () => {
   const [availability, setAvailability] = useState("all"); // all | in | out
   const [priceRange, setPriceRange] = useState([PRICE_ABS_MIN, PRICE_ABS_MAX]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [catalogReady, setCatalogReady] = useState(false);
   const itemsPerPage = 16;
 
   const rawUrlDepartment = searchParams.get("department") || "";
@@ -80,13 +79,7 @@ const Shop = () => {
     setPriceRange([priceBounds.min, priceBounds.max]);
   }, [priceBounds.min, priceBounds.max]);
 
-  useEffect(() => {
-    if (products.length > 0) setCatalogReady(true);
-    else {
-      const t = setTimeout(() => setCatalogReady(true), 1200);
-      return () => clearTimeout(t);
-    }
-  }, [products.length]);
+  const loading = productsLoading && products.length === 0;
 
   /* Soft-redirect legacy department=bags → accessories */
   useEffect(() => {
@@ -584,8 +577,6 @@ const Shop = () => {
       </FilterSection>
     </>
   );
-
-  const loading = !catalogReady && products.length === 0;
 
   return (
     <div className="min-h-screen bg-white">

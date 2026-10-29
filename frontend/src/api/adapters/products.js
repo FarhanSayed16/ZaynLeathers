@@ -231,16 +231,23 @@ export async function fetchProducts({ perPage = 100, page = 1, hydrateVariations
   return mapped;
 }
 
-export async function fetchAllProducts() {
+export async function fetchAllProducts(onPage) {
   const all = [];
   let page = 1;
   const perPage = 100;
 
-  while (true) {
-    const batch = await fetchProducts({ perPage, page });
+  while (page <= 30) {
+    let batch;
+    try {
+      batch = await fetchProducts({ perPage, page });
+    } catch (error) {
+      if (all.length) break;
+      throw error;
+    }
     all.push(...batch);
+    if (onPage) onPage(all.slice());
     if (batch.length < perPage) break;
-    page++;
+    page += 1;
   }
 
   return all;

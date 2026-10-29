@@ -124,7 +124,10 @@ async function request(url, options = {}) {
     headers,
   };
 
-  const res = await fetch(url, merged);
+  const res = await fetch(url, {
+    ...merged,
+    signal: merged.signal || AbortSignal.timeout(45000),
+  });
 
   // Capture Cart-Token from Store API responses for session persistence
   const cartToken = res.headers.get("Cart-Token") || res.headers.get("X-WC-Store-API-Nonce");
