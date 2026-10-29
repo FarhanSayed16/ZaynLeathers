@@ -20,7 +20,7 @@ export const ShopContext = createContext();
 
 const ShopContextProvider = (props) => {
   const [selectedCurrency, setSelectedCurrency] = useState(
-    () => localStorage.getItem("currency") || "INR"
+    () => localStorage.getItem("currency") || "USD"
   );
   const [exchangeRates, setExchangeRates] = useState({ USD: 0, GBP: 0, CAD: 0 });
   const [delivery_fee, setDeliveryFee] = useState(brand.commerce.deliveryFee);

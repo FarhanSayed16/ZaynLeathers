@@ -24,10 +24,7 @@ export function formatPriceUtil(priceINR, targetCurrency, rates) {
   }
 
   const rate = rates[targetCurrency];
-  // If rate is not loaded yet or invalid, fallback to INR
-  if (!rate || rate <= 0) {
-    return `${CURRENCIES.INR.symbol}${numPrice.toLocaleString("en-IN")}`;
-  }
+  if (!rate || rate <= 0) return "";
 
   const raw = numPrice * rate;
   const rounded = smartRound(raw);
