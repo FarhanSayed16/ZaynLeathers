@@ -52,8 +52,8 @@ function isNavActive(linkPath, location) {
   return true;
 }
 
-/** Logo SVG already includes brand text — never render both. */
-function BrandMark({ className = "h-8", compact = false }) {
+/** Gold wordmark. The file already includes the name, so do not add text beside it. */
+function BrandMark({ className = "h-9 w-auto max-w-[200px]" }) {
   const [imgFailed, setImgFailed] = useState(false);
   const src = brand.logos?.navbar;
 
@@ -62,18 +62,14 @@ function BrandMark({ className = "h-8", compact = false }) {
       <img
         src={src}
         alt={brand.name}
-        className={`${className} w-auto object-contain shrink-0 ${compact ? "h-7" : ""}`}
+        className={`${className} object-contain object-center`}
         onError={() => setImgFailed(true)}
       />
     );
   }
 
   return (
-    <span
-      className={`font-display font-semibold tracking-wide text-tz-navy truncate ${
-        compact ? "text-lg" : "text-xl"
-      }`}
-    >
+    <span className="font-display font-semibold tracking-wide text-tz-navy truncate text-xl">
       {brand.name}
     </span>
   );
@@ -309,7 +305,7 @@ const Navbar = () => {
             }`}
           >
             <Link to="/" className="shrink-0 flex items-center min-w-0" aria-label={brand.name}>
-              <BrandMark className={scrolled ? "h-7" : "h-8"} compact={scrolled} />
+              <BrandMark className={scrolled ? "h-9 w-auto" : "h-12 w-auto"} />
             </Link>
 
             <nav className="flex-1 flex items-center justify-start xl:justify-center gap-0 min-w-0 overflow-x-auto no-scrollbar">
@@ -432,18 +428,18 @@ const Navbar = () => {
           </AnimatePresence>
 
           {/* ── Mobile header ── */}
-          <div
-            className={`lg:hidden flex items-center justify-between transition-[height] duration-300 ${
-              scrolled ? "h-12" : "h-14"
-            }`}
-          >
-            <button type="button" aria-label="Open menu" onClick={() => setDrawerOpen(true)} className={iconBtn}>
+          <div className="lg:hidden relative flex items-center h-16">
+            <button type="button" aria-label="Open menu" onClick={() => setDrawerOpen(true)} className={`${iconBtn} relative z-10`}>
               <FaBars size={15} />
             </button>
-            <Link to="/" className="flex items-center min-w-0 px-2" aria-label={brand.name}>
-              <BrandMark className="h-7" compact />
+            <Link
+              to="/"
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center"
+              aria-label={brand.name}
+            >
+              <BrandMark className="h-12 w-auto max-w-[54vw]" />
             </Link>
-            <div className="flex items-center">
+            <div className="relative z-10 ml-auto flex items-center">
               <button
                 type="button"
                 aria-label="Search"
@@ -468,7 +464,7 @@ const Navbar = () => {
                   )}
                 </span>
                 {cartCount > 0 && (
-                  <span className="text-[11px] font-semibold tabular-nums max-w-[4.5rem] truncate">
+                  <span className="hidden sm:inline text-[11px] font-semibold tabular-nums max-w-[4.5rem] truncate">
                     {cartTotal}
                   </span>
                 )}
@@ -496,9 +492,9 @@ const Navbar = () => {
               transition={{ type: "tween", duration: 0.25 }}
               className="fixed top-0 left-0 h-full w-[82%] max-w-sm bg-white z-[70] lg:hidden shadow-xl flex flex-col"
             >
-              <div className="flex items-center justify-between px-4 h-14 border-b border-gray-100">
-                <BrandMark className="h-7" compact />
-                <button type="button" aria-label="Close menu" onClick={() => setDrawerOpen(false)} className={iconBtn}>
+              <div className="relative flex items-center justify-center px-4 h-16 border-b border-gray-100">
+                <BrandMark className="h-11 w-auto max-w-[200px]" />
+                <button type="button" aria-label="Close menu" onClick={() => setDrawerOpen(false)} className={`${iconBtn} absolute right-3`}>
                   <FaTimes size={15} />
                 </button>
               </div>

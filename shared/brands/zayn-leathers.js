@@ -19,8 +19,8 @@ const brand = {
 
   /* ---------- public asset paths (files live in public/brand/) ---------- */
   logos: {
-    navbar: "/brand/navbar-logo.svg",
-    footer: "/brand/footer-logo.svg",
+    navbar: "/brand/zayn-logo.png",
+    footer: "/brand/zayn-logo.png",
     favicon: "/brand/favicon.svg",
   },
 

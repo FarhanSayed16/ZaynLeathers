@@ -406,7 +406,7 @@ const Products = () => {
             className='flex-1 min-w-0 space-y-5'
           >
             {/* Category and Name */}
-            <div>
+            <div className="text-center sm:text-left">
               <motion.p variants={itemVariants} className='text-sm text-gray-500 uppercase tracking-wider'>
                 {productData.subCategory || 'Category'}
               </motion.p>
@@ -416,7 +416,7 @@ const Products = () => {
             </div>
 
             {/* Price */}
-            <motion.div variants={itemVariants} className='flex items-baseline gap-3'>
+            <motion.div variants={itemVariants} className='flex flex-wrap items-baseline justify-center sm:justify-start gap-3'>
               <span className="text-[26px] font-bold text-tz-navy">
                 {formatPrice(displayPrice)}
               </span>
@@ -441,7 +441,7 @@ const Products = () => {
             )}
 
             {factRows.length > 0 && (
-              <dl className="flex flex-wrap gap-x-8 gap-y-3">
+              <dl className="flex flex-wrap justify-center sm:justify-start gap-x-8 gap-y-3 text-center sm:text-left">
                 {factRows.map(([label, value]) => (
                   <div key={label}>
                     <dt className="text-[11px] font-medium uppercase tracking-[0.16em] text-tz-navy/40">{label}</dt>
