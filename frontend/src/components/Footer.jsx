@@ -97,10 +97,10 @@ const Footer = () => {
       <div className="bg-tz-navy text-white">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-10">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-10 lg:gap-8">
-          <div>
-            <Link to="/" className="inline-block">
+          <div className="col-span-2 md:col-span-1 text-center md:text-left">
+            <Link to="/" className="inline-flex justify-center md:justify-start">
               <img
-                className="h-9 w-auto object-contain brightness-0 invert opacity-95"
+                className="h-12 w-auto object-contain"
                 src={brand.logos.footer}
                 alt={brand.name}
                 onError={(e) => {
@@ -108,10 +108,10 @@ const Footer = () => {
                 }}
               />
             </Link>
-            <p className="text-sm text-white/55 mt-4 leading-relaxed max-w-sm">
+            <p className="text-sm text-white/55 mt-4 leading-relaxed max-w-sm mx-auto md:mx-0">
               {brand.footer.blurb}
             </p>
-            <div className="flex flex-wrap gap-2 mt-6">
+            <div className="flex flex-wrap gap-2 mt-6 justify-center md:justify-start">
               {brand.social.instagram ? (
                 <a
                   href={brand.social.instagram}
@@ -230,7 +230,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          <div className="col-span-2 md:col-span-1">
+          <div className="col-span-2 md:col-span-1 text-center md:text-left">
             <h3 className="text-[11px] font-semibold tracking-[0.16em] uppercase text-white/90 mb-4">
               Stay in touch
             </h3>

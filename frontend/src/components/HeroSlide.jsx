@@ -37,12 +37,13 @@ export default function HeroSlide({
         }}
       />
 
-      <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/25 to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/35 to-black/25 sm:hidden" />
+      <div className="absolute inset-0 hidden sm:block bg-gradient-to-r from-black/65 via-black/25 to-transparent" />
+      <div className="absolute inset-0 hidden sm:block bg-gradient-to-t from-black/45 via-transparent to-transparent" />
 
-      <div className="relative z-10 h-full max-w-[1400px] mx-auto px-5 sm:px-10 lg:px-16 flex items-end sm:items-center pb-8 sm:pb-0">
-        <div className="max-w-xl text-white w-full" data-aos="fade-up">
-          <p className="text-[11px] font-semibold tracking-[0.22em] uppercase text-white/70 mb-4">
+      <div className="relative z-10 h-full max-w-[1400px] mx-auto px-5 sm:px-10 lg:px-16 flex items-end justify-center sm:items-center sm:justify-start pb-10 sm:pb-0">
+        <div className="max-w-xl text-white w-full text-center sm:text-left" data-aos="fade-up">
+          <p className="text-[11px] font-semibold tracking-[0.22em] uppercase text-white/70 mb-3 sm:mb-4">
             {brand.name}
           </p>
           <h1 className="font-display text-[1.85rem] sm:text-5xl md:text-6xl xl:text-7xl font-semibold leading-[1.05] tracking-tight">
@@ -57,17 +58,17 @@ export default function HeroSlide({
             ) : null}
           </h1>
           {subtitle ? (
-            <p className="mt-4 text-sm sm:text-base text-white/75 max-w-md leading-relaxed">
+            <p className="mt-4 text-sm sm:text-base text-white/75 max-w-md leading-relaxed mx-auto sm:mx-0">
               {subtitle}
             </p>
           ) : (
-            <p className="mt-4 text-sm sm:text-base text-white/75 max-w-md leading-relaxed">
+            <p className="mt-4 text-sm sm:text-base text-white/75 max-w-md leading-relaxed mx-auto sm:mx-0">
               {brand.about?.heroSubtitle || brand.tagline}
             </p>
           )}
           <Link
             to={ctaLink || "/shop?sort=newest"}
-            className="inline-flex mt-8 items-center gap-2 bg-white text-tz-navy font-semibold text-sm px-8 py-3.5 hover:bg-tz-pink hover:text-white transition-colors"
+            className="inline-flex mt-6 sm:mt-8 items-center gap-2 bg-white text-tz-navy font-semibold text-sm px-8 py-3.5 hover:bg-tz-pink hover:text-white transition-colors"
           >
             {ctaLabel || "Shop new arrivals"}
             <span aria-hidden>→</span>
