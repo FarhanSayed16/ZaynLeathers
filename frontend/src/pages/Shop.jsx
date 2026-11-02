@@ -75,8 +75,25 @@ const Shop = () => {
     return { min: Math.floor(min), max: Math.ceil(max) };
   }, [products]);
 
+  const appliedPriceBounds = useRef(null);
+  const skipPageReset = useRef(false);
   useEffect(() => {
-    setPriceRange([priceBounds.min, priceBounds.max]);
+    const next = [priceBounds.min, priceBounds.max];
+    setPriceRange((prev) => {
+      const applied = appliedPriceBounds.current;
+      appliedPriceBounds.current = next;
+      if (!applied) return next;
+      const wasFullRange = prev[0] <= applied[0] + 1 && prev[1] >= applied[1] - 1;
+      if (wasFullRange) {
+        if (prev[0] === next[0] && prev[1] === next[1]) return prev;
+        skipPageReset.current = true;
+        return next;
+      }
+      const lo = Math.min(Math.max(prev[0], next[0]), next[1]);
+      const hi = Math.max(Math.min(prev[1], next[1]), next[0]);
+      if (lo === prev[0] && hi === prev[1]) return prev;
+      return [lo, hi];
+    });
   }, [priceBounds.min, priceBounds.max]);
 
   const loading = productsLoading && products.length === 0;
@@ -143,6 +160,10 @@ const Shop = () => {
   };
 
   useEffect(() => {
+    if (skipPageReset.current) {
+      skipPageReset.current = false;
+      return;
+    }
     setCurrentPage(1);
   }, [category, subCategory, material, color, search, sortType, availability, priceRange]);
 
@@ -595,7 +616,7 @@ const Shop = () => {
           <p className="mt-2 text-sm text-tz-navy/55 max-w-xl">
             {headerCopy.subtitle}
           </p>
-          <div className="mt-5 -mx-4 px-4 sm:mx-0 sm:px-0 flex gap-2 overflow-x-auto no-scrollbar sm:flex-wrap">
+          <div className="mt-5 flex flex-wrap gap-2">
             {CATEGORY_CHIPS.map((chip) => {
               const chipActive =
                 chip.value === ""
@@ -749,7 +770,7 @@ const Shop = () => {
                     key={filter}
                     className="bg-gray-100 text-tz-navy text-xs px-2.5 py-1 font-medium capitalize"
                   >
-                    {filter}
+                    {String(filter).replace(/-/g, " ")}
                   </span>
                 ))}
             </div>
@@ -1022,7 +1043,7 @@ const ProductGrid = ({
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-7 sm:gap-5">
         {Array.from({ length: 8 }).map((_, i) => (
           <ProductSkeleton key={i} />
         ))}
@@ -1032,7 +1053,7 @@ const ProductGrid = ({
 
   return (
     <div className="flex flex-col">
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-7 sm:gap-5">
         {paginatedProducts.map((item) => (
           <ProductItem
             key={item._id}

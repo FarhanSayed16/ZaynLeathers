@@ -1,8 +1,8 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext, useEffect, useRef, useState } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { ShopContext } from '../context/ShopContext'
 import RelatedProducts from '../components/RelatedProducts'
-import { FaFacebookF, FaInstagram, FaWhatsapp } from 'react-icons/fa'
+import { FaInstagram, FaWhatsapp } from 'react-icons/fa'
 import { toast } from 'react-toastify'
 import SimilarColorProducts from '../components/SimilarColorProducts'
 import ProductAccordion from '../components/ProductAccordian'
@@ -34,61 +34,85 @@ const Products = () => {
   const [size, setSize] = useState('')
   const [showAddToCartPopup, setShowAddToCartPopup] = useState(false)
   const [isImageZoomed, setIsImageZoomed] = useState(false)
-  const [touchStart, setTouchStart] = useState(null)
-  const [touchEnd, setTouchEnd] = useState(null)
+  const [showStickyAtc, setShowStickyAtc] = useState(false)
+  const atcRef = useRef(null)
+  const productsRef = useRef(products)
+  productsRef.current = products
+  const touchRef = useRef(null)
 
   const navigateBack = useNavigate()
   const shareUrl = typeof window !== 'undefined' ? window.location.href : ''
 
+  useEffect(() => {
+    const el = atcRef.current
+    if (!el) return undefined
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const above = entry.boundingClientRect.bottom < 80
+        setShowStickyAtc(!entry.isIntersecting && above)
+      },
+      { threshold: 0.15 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [productData?._id])
+
   const minSwipeDistance = 50
 
   const onTouchStart = (e) => {
-    setTouchEnd(null)
-    setTouchStart(e.targetTouches[0].clientX)
+    const point = e.targetTouches[0]
+    touchRef.current = { x: point.clientX, y: point.clientY, endX: null, endY: null }
   }
 
   const onTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX)
+    if (!touchRef.current) return
+    const point = e.targetTouches[0]
+    touchRef.current.endX = point.clientX
+    touchRef.current.endY = point.clientY
   }
 
   const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return
+    const gesture = touchRef.current
+    touchRef.current = null
+    if (!gesture || gesture.endX == null) return
 
-    const distance = touchStart - touchEnd
-    const isLeftSwipe = distance > minSwipeDistance
-    const isRightSwipe = distance < -minSwipeDistance
+    const dx = gesture.x - gesture.endX
+    const dy = gesture.y - gesture.endY
+    if (Math.abs(dx) < minSwipeDistance || Math.abs(dx) < Math.abs(dy)) return
 
     if (productData && productData.image && productData.image.length > 0) {
       const currentIndex = productData.image.indexOf(image)
-
-      if (isLeftSwipe) {
-        const nextIndex = (currentIndex + 1) % productData.image.length
-        setImage(productData.image[nextIndex])
-      } else if (isRightSwipe) {
-        const prevIndex = (currentIndex - 1 + productData.image.length) % productData.image.length
-        setImage(productData.image[prevIndex])
-      }
+      const safeIndex = currentIndex >= 0 ? currentIndex : 0
+      const nextIndex = dx > 0
+        ? (safeIndex + 1) % productData.image.length
+        : (safeIndex - 1 + productData.image.length) % productData.image.length
+      setImage(productData.image[nextIndex])
     }
   }
 
   useEffect(() => {
+    let cancelled = false
+
     const fetchProductData = async () => {
       setLoading(true)
       setError(null)
 
       try {
-        const foundInList = products?.find(item => item._id === productId)
+        const foundInList = productsRef.current?.find(item => item._id === productId)
         if (foundInList) {
-          setProductData(foundInList)
-          setImage(foundInList.image?.[0] || '')
-          setSize('')
-          setError(null)
-          setLoading(false)
+          if (!cancelled) {
+            setProductData(foundInList)
+            setImage(foundInList.image?.[0] || '')
+            setSize('')
+            setLoading(false)
+          }
           if (foundInList.type === 'variable') {
             const { getProduct } = await import('../api/shopApi')
             const data = await getProduct(productId)
-            if (data.success && data.product && String(data.product._id) === String(productId)) {
+            if (!cancelled && data.success && data.product && String(data.product._id) === String(productId)) {
+              const imgs = data.product.image || []
               setProductData(data.product)
+              setImage((current) => (current && imgs.includes(current) ? current : imgs[0] || ""))
             }
           }
           return
@@ -96,6 +120,7 @@ const Products = () => {
 
         const { getProduct } = await import('../api/shopApi')
         const data = await getProduct(productId)
+        if (cancelled) return
         if (data.success && data.product) {
           setProductData(data.product)
           setImage(data.product.image?.[0] || '')
@@ -106,15 +131,18 @@ const Products = () => {
         }
       } catch (err) {
         console.error('Error fetching product:', err)
-        setError('Failed to load product')
+        if (!cancelled) setError('Failed to load product')
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       }
     }
 
     fetchProductData()
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [productId, products])
+    window.scrollTo(0, 0)
+    return () => {
+      cancelled = true
+    }
+  }, [productId])
 
   useEffect(() => {
     if (productData?._id) pushRecentlyViewed(productData._id)
@@ -125,7 +153,7 @@ const Products = () => {
     toast.success('Link copied to clipboard!')
   }
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!productData) return
 
     const totalStock = getTotalStock(productData)
@@ -141,7 +169,8 @@ const Products = () => {
       toast.error('Selected size is out of stock')
       return
     }
-    addToCart(productData._id, size || 'Standard', { silent: true })
+    const added = await addToCart(productData._id, size || 'Standard', { silent: true })
+    if (!added) return
     setShowAddToCartPopup(true)
 
     setTimeout(() => setShowAddToCartPopup(false), 3000)
@@ -285,7 +314,7 @@ const Products = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="min-h-screen bg-tz-cream pb-28 lg:pb-10"
+      className="min-h-screen bg-[#f6f5f3] pb-36 lg:pb-10"
     >
       <SEO
         title={productData.seoTitle || productData.name}
@@ -294,7 +323,7 @@ const Products = () => {
           || `${productData.name} — shop at ${brand.name}.`
         }
       />
-      <div className="pt-3 sm:pt-6 lg:pt-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pb-24 lg:pb-0">
+      <div className="pt-3 sm:pt-6 lg:pt-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pb-28 lg:pb-8">
         <button
           type="button"
           onClick={() => navigateBack(-1)}
@@ -323,48 +352,49 @@ const Products = () => {
                   key={image}
                   src={productGallery(image || productData.image?.[0])}
                   alt={productData.imageAlt || productData.name}
-                  width={900}
-                  height={1100}
+                  width={1200}
+                  height={1200}
                   decoding="async"
-                  className={`w-full h-full object-contain transition-transform duration-300 ${
+                  className={`w-full h-full object-contain p-2 sm:p-3 transition-transform duration-300 ${
                     isImageZoomed ? 'scale-150 cursor-zoom-out' : 'cursor-zoom-in'
                   }`}
                   onLoad={(event) => {
                     const { naturalWidth, naturalHeight } = event.currentTarget
                     if (!naturalWidth || !naturalHeight) return
-                    const ratio = naturalWidth / naturalHeight
-                    setFrameRatio(Math.min(1.9, Math.max(0.72, ratio)))
+                    const ratio = Math.min(2.8, Math.max(0.72, naturalWidth / naturalHeight))
+                    setFrameRatio((current) => (Math.abs(current - ratio) < 0.01 ? current : ratio))
                   }}
                   onClick={(e) => {
                     e.stopPropagation()
                     setIsImageZoomed(!isImageZoomed)
                   }}
                 />
-
-                {productData.image && productData.image.length > 1 && !isImageZoomed && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={prevImage}
-                      aria-label="Previous image"
-                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-tz-navy p-2 shadow-sm transition-colors lg:hidden"
-                    >
-                      <MdKeyboardArrowLeft className="text-xl" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={nextImage}
-                      aria-label="Next image"
-                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-tz-navy p-2 shadow-sm transition-colors lg:hidden"
-                    >
-                      <MdKeyboardArrowRight className="text-xl" />
-                    </button>
-                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-tz-navy/80 text-white px-2.5 py-0.5 text-[11px] tracking-wide tabular-nums">
-                      {productData.image.indexOf(image) + 1} / {productData.image.length}
-                    </div>
-                  </>
-                )}
               </div>
+              {productData.image && productData.image.length > 1 && (
+                <div className="flex items-center justify-between lg:hidden">
+                  <button
+                    type="button"
+                    onClick={prevImage}
+                    aria-label="Previous image"
+                    className="inline-flex items-center gap-0.5 text-sm font-medium text-tz-navy/70 py-1"
+                  >
+                    <MdKeyboardArrowLeft className="text-xl" />
+                    Prev
+                  </button>
+                  <span className="text-xs tabular-nums tracking-wide text-tz-navy/50">
+                    {Math.max(1, productData.image.indexOf(image) + 1)} / {productData.image.length}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={nextImage}
+                    aria-label="Next image"
+                    className="inline-flex items-center gap-0.5 text-sm font-medium text-tz-navy/70 py-1"
+                  >
+                    Next
+                    <MdKeyboardArrowRight className="text-xl" />
+                  </button>
+                </div>
+              )}
               {productData.image && productData.image.length > 0 && (
                 <div
                   className='flex gap-2 overflow-x-auto no-scrollbar pb-1'
@@ -405,32 +435,28 @@ const Products = () => {
             variants={itemVariants}
             className='flex-1 min-w-0 space-y-5'
           >
-            {/* Category and Name */}
-            <div className="text-center sm:text-left">
-              <motion.p variants={itemVariants} className='text-sm text-gray-500 uppercase tracking-wider'>
-                {productData.subCategory || 'Category'}
-              </motion.p>
-              <h1 className='font-bold text-2xl lg:text-3xl text-gray-800 mt-1 leading-tight'>
+            <div className="bg-white border border-black/5 px-4 py-5 sm:px-6 sm:py-6 space-y-5">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-tz-navy/45">
+                {productData.subCategory || departmentLabel || "Leather"}
+              </p>
+              <h1 className="font-display text-[1.35rem] sm:text-2xl lg:text-3xl font-semibold text-tz-navy mt-1.5 leading-snug">
                 {productData.name}
               </h1>
-            </div>
-
-            {/* Price */}
-            <motion.div variants={itemVariants} className='flex flex-wrap items-baseline justify-center sm:justify-start gap-3'>
-              <span className="text-[26px] font-bold text-tz-navy">
-                {formatPrice(displayPrice)}
-              </span>
-              {displayOldPrice && (
-                <span className="text-[17px] text-tz-navy/40 line-through">
-                  {formatPrice(displayOldPrice)}
+              <div className="mt-3 flex flex-wrap items-baseline gap-3">
+                <span className="text-[1.65rem] font-semibold text-tz-navy tabular-nums">
+                  {formatPrice(displayPrice)}
                 </span>
-              )}
-              {displayOldPrice && (
-                <div className="bg-tz-pink/10 text-tz-pink px-2.5 py-1 rounded-md text-[13px] font-semibold tracking-wide border border-tz-pink/20">
-                  Save {formatPrice(displayOldPrice - displayPrice)}
-                </div>
-              )}
-            </motion.div>
+                {displayOldPrice && (
+                  <span className="text-base text-tz-navy/35 line-through tabular-nums">
+                    {formatPrice(displayOldPrice)}
+                  </span>
+                )}
+              </div>
+              <p className="mt-2 text-xs text-tz-navy/55">
+                Free shipping worldwide · 30-day returns · Cash on delivery
+              </p>
+            </div>
 
             {/* Colors Available - Mobile */}
             {productData.parentId && (
@@ -441,11 +467,11 @@ const Products = () => {
             )}
 
             {factRows.length > 0 && (
-              <dl className="flex flex-wrap justify-center sm:justify-start gap-x-8 gap-y-3 text-center sm:text-left">
+              <dl className="grid grid-cols-2 gap-px bg-black/5 border border-black/5">
                 {factRows.map(([label, value]) => (
-                  <div key={label}>
-                    <dt className="text-[11px] font-medium uppercase tracking-[0.16em] text-tz-navy/40">{label}</dt>
-                    <dd className="mt-1 text-sm text-tz-navy">{value}</dd>
+                  <div key={label} className="bg-white px-3 py-2.5">
+                    <dt className="text-[10px] font-semibold uppercase tracking-[0.14em] text-tz-navy/40">{label}</dt>
+                    <dd className="mt-0.5 text-sm text-tz-navy">{value}</dd>
                   </div>
                 ))}
               </dl>
@@ -460,15 +486,19 @@ const Products = () => {
                     {size ? (
                       <span className="ml-2 font-normal text-tz-navy/55">· {size}</span>
                     ) : (
-                      <span className="ml-2 font-normal text-tz-pink">Select one</span>
+                      <span className="ml-2 font-normal text-tz-navy/45">Choose a size</span>
                     )}
                   </p>
-                  <span className="text-xs text-tz-navy/50 leading-relaxed">
-                    {productData.department === 'bags' ? 'See size / capacity below' : 'True to size for leather'}
-                  </span>
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById("size-guide")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                    className="text-xs font-semibold text-tz-navy/60 underline underline-offset-4 text-left"
+                  >
+                    Size guide
+                  </button>
                 </div>
 
-                <div className='flex flex-wrap gap-2' role="group" aria-label="Select size">
+                <div className='grid grid-cols-4 gap-2' role="group" aria-label="Select size">
                   {productData.sizes.map((item, index) => {
                     const oos = !isSizeInStock(productData, item)
                     return (
@@ -478,7 +508,7 @@ const Products = () => {
                       onClick={() => !oos && setSize(item)}
                       disabled={oos}
                       aria-pressed={item === size}
-                      className={`min-w-[56px] px-3.5 py-2.5 border text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-tz-navy focus-visible:ring-offset-1 ${
+                      className={`w-full px-2 py-3 border text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-tz-navy focus-visible:ring-offset-1 ${
                         oos
                           ? 'bg-gray-50 border-gray-200 text-gray-400 line-through cursor-not-allowed'
                           : item === size
@@ -503,22 +533,22 @@ const Products = () => {
             )}
 
             {/* Stock Status */}
-            <motion.div variants={itemVariants}>
+            <motion.p variants={itemVariants} className="text-sm text-tz-navy/70">
               {totalStock > 0 ? (
-                <div className='flex items-center gap-2 text-sm text-green-600 bg-green-50 px-3 py-2 rounded-lg inline-flex'>
-                  <span className='w-2 h-2 bg-green-600 rounded-full animate-pulse'></span>
-                  In Stock ({size ? `${selectedSizeQty} in ${size}` : `${totalStock} available`})
-                </div>
+                <>
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-600 mr-2 align-middle" />
+                  In stock{size ? ` · ${selectedSizeQty} in ${size}` : ` · ${totalStock} available`}
+                </>
               ) : (
-                <div className='flex items-center gap-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg inline-flex'>
-                  <span className='w-2 h-2 bg-red-600 rounded-full animate-pulse'></span>
-                  Out of Stock
-                </div>
+                <>
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-600 mr-2 align-middle" />
+                  Out of stock
+                </>
               )}
-            </motion.div>
+            </motion.p>
 
             {/* Add to Cart + custom fit */}
-            <div className='pt-1 space-y-3'>
+            <div ref={atcRef} className='pt-1 space-y-3'>
               <button
                 type="button"
                 onClick={handleAddToCart}
@@ -563,19 +593,12 @@ const Products = () => {
                   </a>
                 ) : null}
               </div>
-              <p className="text-xs text-tz-navy/50 text-center">
-                Cash on delivery · 30-day returns · Free shipping worldwide
-              </p>
-            </div>
-
-            {/* Share Section */}
-            <motion.div variants={itemVariants} className='pt-2'>
-              <p className='text-xs font-medium text-gray-500 mb-3'>Share this product</p>
-              <div className='flex gap-4 items-center'>
+              <div className="flex items-center gap-3 pt-1">
+                <span className="text-[11px] uppercase tracking-[0.14em] text-tz-navy/40">Share</span>
                 <button
                   type="button"
                   onClick={copyToClipboard}
-                  className="text-xs font-semibold underline text-tz-navy/70"
+                  className="text-xs font-semibold text-tz-navy/70 underline underline-offset-4"
                 >
                   Copy link
                 </button>
@@ -583,38 +606,28 @@ const Products = () => {
                   href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`${productData.name} ${shareUrl}`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-500 hover:text-green-500"
+                  className="text-tz-navy/50 hover:text-tz-navy"
                   aria-label="Share on WhatsApp"
                 >
-                  <FaWhatsapp size={18} />
+                  <FaWhatsapp size={16} />
                 </a>
-                {brand.social?.facebook ? (
-                  <a
-                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-gray-500 hover:text-blue-600"
-                    aria-label="Share on Facebook"
-                  >
-                    <FaFacebookF size={18} />
-                  </a>
-                ) : null}
                 {brand.social?.instagram ? (
                   <a
                     href={brand.social.instagram}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-gray-500 hover:text-pink-500"
+                    className="text-tz-navy/50 hover:text-tz-navy"
                     aria-label="Zayn Leathers on Instagram"
                   >
-                    <FaInstagram size={18} />
+                    <FaInstagram size={15} />
                   </a>
                 ) : null}
               </div>
-            </motion.div>
+            </div>
+            </div>
 
             {detailRows.length > 0 && (
-              <section className="border border-tz-navy/10 bg-white">
+              <section className="border border-black/5 bg-white">
                 <h2 className="px-4 pt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-tz-navy/45">
                   Details
                 </h2>
@@ -629,7 +642,7 @@ const Products = () => {
               </section>
             )}
 
-            <div className="border-t border-tz-navy/10">
+            <div className="border border-black/5 bg-white px-4 sm:px-6">
               <ProductAccordion title="Description" defaultOpen>
                 <div className="space-y-3 text-[15px] leading-7 text-tz-navy/85">
                   {copyBlocks.map((block, index) =>
@@ -649,7 +662,7 @@ const Products = () => {
                 </div>
               </ProductAccordion>
 
-              <ProductAccordion title="Size guide">
+              <ProductAccordion id="size-guide" title="Size guide">
                 {productData.department === "bags" ? (
                   <div className="space-y-2">
                     <p>Bag sizes are listed as approximate outer dimensions on the product (H × W × D).</p>
@@ -730,13 +743,12 @@ const Products = () => {
         <RecentlyViewed excludeId={productData._id} />
       </div>
 
-      {totalStock > 0 && (
+      {totalStock > 0 && showStickyAtc && (
         <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 px-4 py-3 flex items-center gap-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold truncate text-tz-navy">{productData.name}</p>
+            <p className="text-sm font-semibold text-tz-navy">{formatPrice(displayPrice)}</p>
             <p className="text-xs text-tz-navy/55 mt-0.5">
-              {formatPrice(displayPrice)}
-              {productData.sizes?.length ? ` · ${size || 'Select size'}` : ''}
+              {productData.sizes?.length ? (size ? `Size ${size}` : "Select a size") : "Ready to ship"}
             </p>
           </div>
           <button

@@ -397,7 +397,7 @@ add_action( 'rest_api_init', function () {
 });
 
 function zayn_razorpay_create_order( $request ) {
-    $amount   = (int) ( $request->get_param( 'amount' ) * 100 ); // Razorpay uses paise
+    $amount   = (int) round( (float) $request->get_param( 'amount' ) * 100 ); // paise
     $currency = 'INR';
 
     $response = wp_remote_post( 'https://api.razorpay.com/v1/orders', [
@@ -620,7 +620,7 @@ function zayn_settings_page() {
                 <tr>
                     <th>Free Shipping Threshold (₹)</th>
                     <td><input type="number" name="zayn_free_shipping_threshold" value="<?php echo esc_attr( $free_threshold ); ?>" />
-                    <p class="description">Default 2999 — matches storefront promo copy.</p></td>
+                    <p class="description">Default 2999 — store prices are INR; shop can display USD / GBP / CAD.</p></td>
                 </tr>
                 <tr>
                     <th>COD Enabled</th>
@@ -632,7 +632,7 @@ function zayn_settings_page() {
                 </tr>
                 <tr>
                     <th>Promo strip message</th>
-                    <td><input type="text" name="zayn_promo_message" value="<?php echo esc_attr( $promo['message'] ?? '' ); ?>" class="large-text" placeholder="Free shipping on orders above ₹2,999" /></td>
+                    <td><input type="text" name="zayn_promo_message" value="<?php echo esc_attr( $promo['message'] ?? '' ); ?>" class="large-text" placeholder="Free expedited shipping worldwide · Handcrafted leather" /></td>
                 </tr>
                 <tr>
                     <th>Promo strip link</th>
