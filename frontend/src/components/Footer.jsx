@@ -100,7 +100,7 @@ const Footer = () => {
           <div className="col-span-2 md:col-span-1 text-center md:text-left">
             <Link to="/" className="inline-flex justify-center md:justify-start">
               <img
-                className="h-12 w-auto object-contain"
+                className="h-10 w-auto object-contain"
                 src={brand.logos.footer}
                 alt={brand.name}
                 onError={(e) => {

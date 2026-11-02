@@ -172,13 +172,6 @@ a.active hr {
   animation-delay: 2s;
 }
 
-@media (max-width:640px) {
-  a.active {
-    background-color: rgb(var(--tz-navy));
-    color: white;
-  }
-}
-
 @keyframes slideIn {
   from { transform: translateX(100%); }
   to { transform: translateX(0); }

@@ -14,7 +14,6 @@ const CurrencySelector = () => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -34,8 +33,11 @@ const CurrencySelector = () => {
   return (
     <div className="relative inline-block text-left mr-1 sm:mr-3" ref={dropdownRef}>
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-black transition px-2 py-1 rounded-md hover:bg-gray-100"
+        aria-label="Choose currency"
+        aria-expanded={isOpen}
       >
         <span className="text-[16px] leading-none">{flags[selectedCurrency]}</span>
         <span className="hidden sm:inline">{selectedCurrency}</span>
@@ -47,6 +49,7 @@ const CurrencySelector = () => {
           <div className="py-1">
             {Object.keys(CURRENCIES).map((code) => (
               <button
+                type="button"
                 key={code}
                 onClick={() => handleSelect(code)}
                 className={`w-full text-left px-4 py-2 text-sm flex items-center justify-between hover:bg-gray-100 transition ${selectedCurrency === code ? 'bg-gray-50 font-bold' : 'text-gray-700'}`}
