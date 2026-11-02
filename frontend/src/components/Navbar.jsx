@@ -30,6 +30,13 @@ function parseLink(path) {
   return { pathname, params: new URLSearchParams(query) };
 }
 
+function menuLabel(label, columnTitle) {
+  const title = String(columnTitle || "").toLowerCase();
+  const text = String(label || "");
+  if (title.includes("jacket") && / jackets$/i.test(text)) return text.replace(/ jackets$/i, "");
+  return text;
+}
+
 function isNavActive(linkPath, location) {
   const { pathname, params } = parseLink(linkPath);
   if (location.pathname !== pathname) return false;
@@ -52,7 +59,7 @@ function isNavActive(linkPath, location) {
   return true;
 }
 
-/** Gold wordmark. The file already includes the name, so do not add text beside it. */
+/** Wordmark already includes the name, so do not add text beside it. */
 function BrandMark({ className = "h-9 w-auto max-w-[200px]" }) {
   const [imgFailed, setImgFailed] = useState(false);
   const src = brand.logos?.navbar;
@@ -305,7 +312,7 @@ const Navbar = () => {
             }`}
           >
             <Link to="/" className="shrink-0 flex items-center min-w-0" aria-label={brand.name}>
-              <BrandMark className={scrolled ? "h-9 w-auto" : "h-12 w-auto"} />
+              <BrandMark className={scrolled ? "h-9 w-auto" : "h-11 w-auto"} />
             </Link>
 
             <nav className="flex-1 flex items-center justify-start xl:justify-center gap-0 min-w-0 overflow-x-auto no-scrollbar">
@@ -437,7 +444,7 @@ const Navbar = () => {
               className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center"
               aria-label={brand.name}
             >
-              <BrandMark className="h-12 w-auto max-w-[54vw]" />
+              <BrandMark className="h-10 w-auto max-w-[52vw]" />
             </Link>
             <div className="relative z-10 ml-auto flex items-center">
               <button
@@ -490,15 +497,20 @@ const Navbar = () => {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "tween", duration: 0.25 }}
-              className="fixed top-0 left-0 h-full w-[82%] max-w-sm bg-white z-[70] lg:hidden shadow-xl flex flex-col"
+              className="fixed inset-0 z-[70] lg:hidden bg-white flex flex-col"
             >
-              <div className="relative flex items-center justify-center px-4 h-16 border-b border-gray-100">
-                <BrandMark className="h-11 w-auto max-w-[200px]" />
-                <button type="button" aria-label="Close menu" onClick={() => setDrawerOpen(false)} className={`${iconBtn} absolute right-3`}>
-                  <FaTimes size={15} />
+              <div className="relative flex items-center justify-center px-4 h-16 border-b border-gray-100 shrink-0">
+                <BrandMark className="h-10 w-auto max-w-[190px]" />
+                <button
+                  type="button"
+                  aria-label="Close menu"
+                  onClick={() => setDrawerOpen(false)}
+                  className="absolute right-2 inline-flex items-center justify-center w-11 h-11 text-tz-navy"
+                >
+                  <FaTimes size={18} />
                 </button>
               </div>
-              <nav className="flex-1 overflow-y-auto py-2 px-2">
+              <nav className="flex-1 overflow-y-auto overscroll-contain pb-[max(2.5rem,env(safe-area-inset-bottom))]">
                 {navLinks.map((link) => {
                   const active = isNavActive(link.path, location);
                   const hasMega = Boolean(link.mega);
@@ -511,40 +523,48 @@ const Navbar = () => {
                         <button
                           type="button"
                           onClick={() => setMobileMega(open ? null : link.mega)}
-                          className={`w-full flex items-center justify-between px-4 py-3.5 text-sm font-semibold uppercase tracking-wide ${
-                            active || open ? "text-tz-navy bg-gray-50" : "text-tz-navy/80"
+                          className={`sticky top-0 z-10 w-full flex items-center justify-between min-h-12 px-5 text-[15px] font-semibold uppercase tracking-wide bg-white ${
+                            open ? "text-tz-navy" : "text-tz-navy/80"
                           }`}
                         >
-                          {link.label}
+                          <span className="flex items-center gap-2">
+                            {active ? <span className="h-1.5 w-1.5 rounded-full bg-tz-navy" /> : null}
+                            {link.label}
+                          </span>
                           <FaChevronDown
-                            size={11}
+                            size={12}
                             className={`opacity-50 transition-transform ${open ? "rotate-180" : ""}`}
                           />
                         </button>
                         {open && (
-                          <div className="pb-3 px-4 space-y-3">
+                          <div className="pb-2">
                             <Link
                               to={link.path}
                               onClick={() => setDrawerOpen(false)}
-                              className="block text-xs font-semibold text-tz-navy/70 py-1"
+                              className="flex items-center min-h-11 px-5 text-sm font-semibold text-tz-navy border-t border-gray-100"
                             >
                               View all {link.label}
                             </Link>
                             {columns.map((col) => (
                               <div key={col.title}>
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-tz-navy/50 mb-1">
+                                <p className="px-5 pt-4 pb-1 text-[11px] font-bold uppercase tracking-[0.16em] text-tz-navy/40">
                                   {col.title}
                                 </p>
-                                {(col.links || []).map((item) => (
-                                  <Link
-                                    key={item.path + item.label}
-                                    to={item.path}
-                                    onClick={() => setDrawerOpen(false)}
-                                    className="block py-1.5 text-sm text-tz-navy/75"
-                                  >
-                                    {item.label}
-                                  </Link>
-                                ))}
+                                {(col.links || []).map((item) => {
+                                  const itemActive = isNavActive(item.path, location);
+                                  return (
+                                    <Link
+                                      key={item.path + item.label}
+                                      to={item.path}
+                                      onClick={() => setDrawerOpen(false)}
+                                      className={`flex items-center min-h-11 px-5 text-[15px] border-b border-gray-50 ${
+                                        itemActive ? "text-tz-navy font-semibold bg-[#f6f5f3]" : "text-tz-navy/80"
+                                      }`}
+                                    >
+                                      {menuLabel(item.label, col.title)}
+                                    </Link>
+                                  );
+                                })}
                               </div>
                             ))}
                           </div>
@@ -555,23 +575,24 @@ const Navbar = () => {
 
                   return (
                     <div key={link.path + link.label}>
-                      <NavLink
+                      <Link
                         to={link.path}
                         onClick={() => setDrawerOpen(false)}
-                        className={`block px-4 py-3.5 border-b border-gray-100 text-sm font-semibold uppercase tracking-wide ${
-                          active ? "bg-gray-50 text-tz-navy" : "text-tz-navy/80"
-                        } ${link.highlight ? "text-tz-navy" : ""}`}
+                        className={`flex items-center min-h-12 px-5 border-b border-gray-100 text-[15px] font-semibold uppercase tracking-wide ${
+                          active ? "text-tz-navy bg-[#f6f5f3]" : "text-tz-navy/80"
+                        }`}
                       >
+                        {active ? <span className="mr-2 h-1.5 w-1.5 rounded-full bg-tz-navy" /> : null}
                         {link.label}
-                      </NavLink>
+                      </Link>
                       {link.path === "/contact" && brand.contact.whatsappUrl ? (
                         <a
                           href={`${brand.contact.whatsappUrl}?text=${encodeURIComponent("Hi, I would like to place an order with Zayn Leathers.")}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="flex items-center gap-2 px-4 py-3.5 border-b border-gray-100 text-sm font-semibold text-[#128C7E]"
+                          className="flex items-center gap-2 min-h-12 px-5 border-b border-gray-100 text-[15px] font-semibold text-[#128C7E]"
                         >
-                          <FaWhatsapp size={14} /> WhatsApp
+                          <FaWhatsapp size={16} /> WhatsApp
                         </a>
                       ) : null}
                     </div>
@@ -580,23 +601,23 @@ const Navbar = () => {
                 <Link
                   to="/wishlist"
                   onClick={() => setDrawerOpen(false)}
-                  className="flex items-center gap-2 px-4 py-3.5 border-b border-gray-100 text-sm font-semibold text-tz-navy/80"
+                  className="flex items-center gap-2 min-h-12 px-5 border-b border-gray-100 text-[15px] font-semibold text-tz-navy/80"
                 >
-                  <FaHeart size={12} className="opacity-50" /> Wishlist
+                  <FaHeart size={13} className="opacity-50" /> Wishlist
                 </Link>
                 {token ? (
                   <>
                     <Link
                       to="/account"
                       onClick={() => setDrawerOpen(false)}
-                      className="block px-4 py-3.5 border-b border-gray-100 text-sm font-semibold text-tz-navy/80"
+                      className="flex items-center min-h-12 px-5 border-b border-gray-100 text-[15px] font-semibold text-tz-navy/80"
                     >
                       Account
                     </Link>
                     <Link
                       to="/orders"
                       onClick={() => setDrawerOpen(false)}
-                      className="block px-4 py-3.5 border-b border-gray-100 text-sm font-semibold text-tz-navy/80"
+                      className="flex items-center min-h-12 px-5 border-b border-gray-100 text-[15px] font-semibold text-tz-navy/80"
                     >
                       Orders
                     </Link>
@@ -606,7 +627,7 @@ const Navbar = () => {
                         signOut();
                         setDrawerOpen(false);
                       }}
-                      className="w-full text-left px-4 py-3.5 text-sm font-semibold text-red-600"
+                      className="flex items-center w-full min-h-12 px-5 text-left text-[15px] font-semibold text-red-600"
                     >
                       Logout
                     </button>
@@ -615,7 +636,7 @@ const Navbar = () => {
                   <Link
                     to="/login"
                     onClick={() => setDrawerOpen(false)}
-                    className="block px-4 py-3.5 text-sm font-semibold text-tz-navy/80"
+                    className="flex items-center min-h-12 px-5 text-[15px] font-semibold text-tz-navy/80"
                   >
                     Login
                   </Link>

@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { FaChevronDown } from "react-icons/fa";
 
-const ProductAccordion = ({ title, children, defaultOpen = false }) => {
+const ProductAccordion = ({ title, children, defaultOpen = false, id }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className="border-b border-tz-navy/10">
+    <div id={id} className="border-b border-tz-navy/10 scroll-mt-28">
       <button
         type="button"
         aria-expanded={isOpen}

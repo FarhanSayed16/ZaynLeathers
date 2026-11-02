@@ -65,12 +65,12 @@ const HomeCategories = () => {
   return (
     <section className="bg-white">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 gap-2 sm:gap-4">
           {FEATURED.map((card) => (
             <Link
               key={card.path}
               to={card.path}
-              className="group relative block aspect-[4/5] overflow-hidden bg-tz-cream"
+              className="group relative block aspect-[3/4] sm:aspect-[4/5] overflow-hidden bg-tz-cream"
             >
               <img
                 src={card.image || brand.media?.placeholder}
@@ -80,7 +80,7 @@ const HomeCategories = () => {
                 }`}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
-              <p className="absolute bottom-6 left-0 right-0 text-center text-white text-2xl sm:text-3xl font-semibold tracking-wide">
+              <p className="absolute bottom-3 sm:bottom-6 left-0 right-0 text-center text-white text-lg sm:text-3xl font-semibold tracking-wide">
                 {card.label}
               </p>
             </Link>

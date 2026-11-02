@@ -89,8 +89,8 @@ const ReviewSection = ({ productId, sku }) => {
     : "";
 
   return (
-    <div className="p-4 md:p-5 bg-gray-100 rounded">
-      <h2 className="text-xl font-bold mb-2">Customer Reviews</h2>
+    <div id="reviews" className="scroll-mt-28 border border-black/5 bg-white px-4 py-5 sm:px-6 sm:py-6">
+      <h2 className="font-display text-2xl text-tz-navy">Reviews</h2>
 
       {reviews.length > 0 ? (
         <div className="flex items-center gap-2 mb-4">
@@ -104,18 +104,18 @@ const ReviewSection = ({ productId, sku }) => {
           </span>
         </div>
       ) : (
-        <p className="text-gray-500 mb-4">No reviews yet.</p>
+        <p className="mt-3 text-sm text-tz-navy/55">No reviews for this piece yet.</p>
       )}
 
       {!token ? (
-        <div className="mb-6 bg-white p-4 rounded shadow text-sm text-gray-600">
+        <div className="mt-4 border border-black/5 px-4 py-3 text-sm text-tz-navy/70">
           <Link to="/login" className="text-tz-navy font-semibold underline">
             Sign in
           </Link>{" "}
           to leave a review.
         </div>
       ) : (
-        <form onSubmit={submitReview} className="mb-6 bg-white p-4 rounded shadow">
+        <form onSubmit={submitReview} className="mt-4 border border-black/5 p-4">
           <p className="text-sm text-gray-600 mb-3">
             Posting as <span className="font-semibold">{displayName}</span>
           </p>
@@ -150,7 +150,7 @@ const ReviewSection = ({ productId, sku }) => {
 
       <div className="space-y-4">
         {reviews.map((r) => (
-          <div key={r._id} className="bg-white py-2 md:py-4 rounded shadow px-4">
+          <div key={r._id} className="border-t border-black/5 py-4">
             <div className="flex justify-between mb-1">
               <span className="font-semibold">{r.name}</span>
               <div className="flex text-yellow-500">

@@ -3,7 +3,7 @@ import brand from "../../brand";
 
 const HomeProof = () => (
   <section className="bg-[#f6f5f3] border-y border-black/5">
-    <div className="max-w-2xl mx-auto px-4 py-14 sm:py-20 text-center">
+    <div className="max-w-2xl mx-auto px-4 py-8 sm:py-20 text-center">
       <p className="text-amber-500 tracking-[0.4em] text-lg" aria-hidden="true">
         ★★★★★
       </p>

@@ -48,12 +48,6 @@ const ProductItem = ({
     }
   };
 
-  const truncateByWord = (str, limit) => {
-    if (!str) return "";
-    if (str.length <= limit) return str;
-    return str.substring(0, limit).trim() + "...";
-  };
-
   const primarySrc = imageError
     ? brand.media.placeholder
     : productThumb(
@@ -68,13 +62,13 @@ const ProductItem = ({
       onMouseLeave={() => setIsHovered(false)}
     >
       <Link to={`/product/${id}`} className="flex flex-col h-full bg-white overflow-hidden">
-        <div className="relative bg-gray-50 overflow-hidden aspect-[3/4] w-full">
+        <div className="relative bg-[#f3f1ee] overflow-hidden aspect-[3/4] w-full">
           <img
             src={primarySrc}
             alt={imageAlt || name}
             width={480}
             height={640}
-            className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+            className="absolute inset-0 w-full h-full object-contain object-center p-1.5 transition-transform duration-700 ease-out group-hover:scale-[1.03]"
             onError={() => setImageError(true)}
             loading="lazy"
             decoding="async"
@@ -100,7 +94,7 @@ const ProductItem = ({
             type="button"
             onClick={handleLikeToggle}
             aria-label={isLiked ? "Remove from wishlist" : "Add to wishlist"}
-            className="absolute top-2.5 right-2.5 z-20 bg-white/95 p-2 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity shadow-sm"
+            className="absolute top-2.5 right-2.5 z-20 bg-white/95 p-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100 transition-opacity shadow-sm"
           >
             {isLiked ? (
               <FaHeart size={13} className="text-tz-pink" />
@@ -110,12 +104,12 @@ const ProductItem = ({
           </button>
         </div>
 
-        <div className="px-2 pt-3.5 pb-2 flex-1 flex flex-col items-center text-center">
+        <div className="pt-3 pb-1 flex-1 flex flex-col items-start text-left">
           <h3 className="text-[13px] sm:text-sm font-medium text-tz-navy leading-snug line-clamp-2 min-h-[2.5rem]">
-            {truncateByWord(name, 56)}
+            {name}
           </h3>
 
-          <div className="mt-2 flex items-baseline justify-center gap-2">
+          <div className="mt-1.5 flex items-baseline gap-2">
             <span className="text-[15px] font-bold text-tz-navy tabular-nums">
               {priceFrom && price > 0 ? `From ${formatPrice(price)}` : formatPrice(price)}
             </span>
