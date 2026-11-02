@@ -1,4 +1,4 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Zayn Leathers">
   <rect width="64" height="64" rx="12" fill="#2C1810"/>
-  <text x="32" y="42" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="32" font-weight="700" fill="#C4A574">T</text>
+  <path fill="#F7F2EA" d="M14 15h36v6.5L23.5 42.5H50V49H14v-6.5L40.5 21.5H14V15z"/>
 </svg>
