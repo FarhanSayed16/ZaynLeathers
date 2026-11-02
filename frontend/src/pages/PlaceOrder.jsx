@@ -857,7 +857,6 @@ const onSubmitHandler = async (event) => {
               </motion.button>
             </motion.div>
 
-            {/* Secure Payment Badge */}
             {selectedCurrency !== 'INR' && (
               <div className="mt-4 text-center text-[11.5px] text-gray-500 font-medium">
                 *You will be charged in INR at checkout. Your bank will automatically convert this at their current rate.

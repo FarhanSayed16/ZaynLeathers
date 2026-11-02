@@ -2,7 +2,7 @@ import { createContext, useCallback, useEffect, useMemo, useRef, useState } from
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import brand from "../brand";
-import { formatPriceUtil } from "../utils/currency";
+import { DEFAULT_CURRENCY, formatPriceUtil } from "../utils/currency";
 import { getSizePrice } from "../utils/productMatrix";
 import {
   bumpCart,
@@ -19,9 +19,13 @@ import * as shopApi from "../api/shopApi";
 export const ShopContext = createContext();
 
 const ShopContextProvider = (props) => {
-  const [selectedCurrency, setSelectedCurrency] = useState(
-    () => localStorage.getItem("currency") || "USD"
-  );
+  const [selectedCurrency, setSelectedCurrency] = useState(() => {
+    const saved = localStorage.getItem("currency");
+    if (saved === "INR" || saved === "USD" || saved === "GBP" || saved === "CAD") {
+      return saved;
+    }
+    return DEFAULT_CURRENCY;
+  });
   const [exchangeRates, setExchangeRates] = useState({ USD: 0, GBP: 0, CAD: 0 });
   const [delivery_fee, setDeliveryFee] = useState(brand.commerce.deliveryFee);
   const [settings, setSettings] = useState(null);
@@ -77,9 +81,10 @@ const ShopContextProvider = (props) => {
     async (itemId, size, options = {}) => {
       if (!size) {
         toast.error("Please select the Product Size");
-        return;
+        return false;
       }
 
+      const previous = cartItems;
       const next = bumpCart(cartItems, itemId, size);
       setCartItems(next);
       const quiet = options.silent === true;
@@ -87,7 +92,7 @@ const ShopContextProvider = (props) => {
       if (!token) {
         writeGuestCart(next);
         if (!quiet) toast.success("Added to cart");
-        return;
+        return true;
       }
 
       try {
@@ -95,15 +100,19 @@ const ShopContextProvider = (props) => {
         if (response.success) {
           if (response.cartData) setCartItems(response.cartData);
           if (!quiet) toast.success("Added to cart");
-        } else {
-          if (!handleAuthError(response, response.status)) {
-            toast.error(response.message || "Could not add to cart");
-          }
+          return true;
         }
+        setCartItems(previous);
+        if (!handleAuthError(response, response.status)) {
+          toast.error(response.message || "Could not add to cart");
+        }
+        return false;
       } catch (error) {
+        setCartItems(previous);
         if (!handleAuthError(error.response?.data, error.response?.status)) {
           toast.error(error.message);
         }
+        return false;
       }
     },
     [token, cartItems, handleAuthError]
@@ -125,6 +134,7 @@ const ShopContextProvider = (props) => {
 
   const updateQuantity = useCallback(
     async (itemId, size, quantity) => {
+      const previous = cartItems;
       const next = setCartQty(cartItems, itemId, size, quantity);
       setCartItems(next);
 
@@ -138,9 +148,11 @@ const ShopContextProvider = (props) => {
         if (response.success && response.cartData) {
           setCartItems(response.cartData);
         } else if (!response.success) {
+          setCartItems(previous);
           handleAuthError(response, response.status);
         }
       } catch (error) {
+        setCartItems(previous);
         handleAuthError(error.response?.data, error.response?.status);
       }
     },

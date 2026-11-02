@@ -1,6 +1,12 @@
 const HomeTrustLine = () => (
   <section className="bg-white border-b border-gray-100">
-    <div className="max-w-3xl mx-auto px-4 py-6 text-center">
+    <div className="max-w-3xl mx-auto px-4 py-3 text-center sm:hidden">
+      <p className="text-[12px] tracking-wide text-tz-navy/70">
+        <span className="text-amber-500 tracking-[0.18em] mr-1.5" aria-hidden="true">★★★★★</span>
+        <span className="font-semibold text-tz-navy">15,000</span> sold · 99% positive
+      </p>
+    </div>
+    <div className="hidden sm:block max-w-3xl mx-auto px-4 py-6 text-center">
       <p className="text-amber-500 tracking-[0.35em] text-sm" aria-hidden="true">
         ★★★★★
       </p>

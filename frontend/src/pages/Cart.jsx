@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { getSizePrice } from '../utils/productMatrix'
 
 const Cart = () => {
-  const { products, formatPrice, cartItems, updateQuantity, navigate, getCartAmount, token } =
+  const { products, productsLoading, formatPrice, cartItems, updateQuantity, navigate, getCartAmount, token } =
     useContext(ShopContext)
 
   const [cartData, setCartData] = useState([])
@@ -19,24 +19,25 @@ const Cart = () => {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    if (products.length > 0) {
-      const tempData = []
-      for (const items in cartItems) {
-        for (const item in cartItems[items]) {
-          if (cartItems[items][item] > 0) {
-            tempData.push({
-              _id: items,
-              size: item,
-              quantity: cartItems[items][item],
-            })
-          }
+    const tempData = []
+    for (const items in cartItems) {
+      for (const item in cartItems[items]) {
+        if (cartItems[items][item] > 0) {
+          tempData.push({
+            _id: items,
+            size: item,
+            quantity: cartItems[items][item],
+          })
         }
       }
-      setCartData(tempData)
-      setIsLoading(false)
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [cartItems, products])
+    setCartData(tempData)
+    if (!productsLoading || products.length > 0) setIsLoading(false)
+  }, [cartItems, products, productsLoading])
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
 
   const handleCheckout = () => {
     if (getCartAmount() === 0) {
@@ -196,7 +197,6 @@ const Cart = () => {
                       opacity: 0,
                       transition: { duration: 0.3 }
                     }}
-                    layout
                     onHoverStart={() => setHoveredItem(`${item._id}-${item.size}`)}
                     onHoverEnd={() => setHoveredItem(null)}
                     className="relative group"

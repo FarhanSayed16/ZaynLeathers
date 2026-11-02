@@ -317,31 +317,36 @@ const CustomJackets = () => {
       </section>
 
       {/* How it works */}
-      <section className="border-b border-tz-navy/10 bg-white">
-        <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-tz-navy/45 mb-2">
-            How it works
-          </p>
-          <h2 className="font-display text-2xl sm:text-3xl font-semibold text-tz-navy mb-8 sm:mb-10">
-            Three steps to your jacket
-          </h2>
-          <ol className="grid sm:grid-cols-3 gap-8 sm:gap-6">
+      <section className="border-b border-black/5 bg-[#f6f5f3]">
+        <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-16">
+          <div className="text-center sm:text-left">
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-tz-navy/45 mb-2">
+              How it works
+            </p>
+            <h2 className="font-display text-2xl sm:text-3xl font-semibold text-tz-navy">
+              Three steps to your jacket
+            </h2>
+          </div>
+          <ol className="mt-5 sm:mt-10 bg-white border border-black/5 sm:bg-transparent sm:border-0 sm:grid sm:grid-cols-3 sm:gap-4">
             {STEPS.map((step, i) => {
               const Icon = step.icon;
               return (
-                <li key={step.title} className="relative">
-                  <div className="flex items-center gap-3 mb-3">
-                    <span className="w-10 h-10 inline-flex items-center justify-center bg-tz-navy text-white">
-                      <Icon size={16} aria-hidden />
-                    </span>
-                    <span className="text-[11px] font-bold tabular-nums text-tz-navy/35">
+                <li
+                  key={step.title}
+                  className="flex gap-4 px-4 py-4 border-b border-black/5 last:border-b-0 sm:border sm:bg-white sm:px-5 sm:py-6"
+                >
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center bg-tz-navy text-white">
+                    <Icon size={16} aria-hidden />
+                  </span>
+                  <div className="min-w-0 pt-0.5">
+                    <p className="text-[11px] font-bold tabular-nums tracking-[0.14em] text-tz-navy/40">
                       0{i + 1}
-                    </span>
+                    </p>
+                    <h3 className="mt-0.5 font-display text-lg font-semibold text-tz-navy leading-snug">
+                      {step.title}
+                    </h3>
+                    <p className="mt-1 text-sm text-tz-navy/60 leading-relaxed">{step.text}</p>
                   </div>
-                  <h3 className="font-display text-lg font-semibold text-tz-navy mb-1.5">
-                    {step.title}
-                  </h3>
-                  <p className="text-sm text-tz-navy/60 leading-relaxed">{step.text}</p>
                 </li>
               );
             })}
