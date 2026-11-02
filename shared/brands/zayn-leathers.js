@@ -22,6 +22,9 @@ const brand = {
     navbar: "/brand/zayn-logo-black.png",
     footer: "/brand/zayn-logo-white.png",
     favicon: "/brand/favicon.svg",
+    faviconPng: "/brand/favicon.png",
+    appleTouchIcon: "/brand/apple-touch-icon.png",
+    ogImage: "/brand/og-image.png",
   },
 
   /* ---------- theme (CSS variables applied at bootstrap) ---------- */

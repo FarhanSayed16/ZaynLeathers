@@ -18,18 +18,41 @@ function setRgbVar(root, name, hex) {
   if (channels) root.style.setProperty(name, channels)
 }
 
+function upsertLink(rel, href, attrs = {}) {
+  if (!href) return
+  let link = document.querySelector(`link[rel='${rel}']`)
+  if (!link) {
+    link = document.createElement('link')
+    link.rel = rel
+    document.head.appendChild(link)
+  }
+  link.href = href
+  Object.entries(attrs).forEach(([key, value]) => {
+    if (value != null) link.setAttribute(key, value)
+  })
+}
+
 /** Apply brand identity to document head (title, favicon, CSS vars). Call once at app boot. */
 export function applyBrandToDocument() {
   document.title = brand.seo?.defaultTitle || brand.name
 
-  let link = document.querySelector("link[rel~='icon']")
-  if (!link) {
-    link = document.createElement('link')
-    link.rel = 'icon'
-    document.head.appendChild(link)
+  const logos = brand.logos || {}
+  upsertLink('icon', logos.favicon, {
+    type: logos.favicon?.endsWith('.svg') ? 'image/svg+xml' : 'image/png',
+  })
+  if (logos.faviconPng) {
+    // Keep a PNG fallback for browsers that ignore SVG favicons
+    let png = document.querySelector("link[rel='icon'][type='image/png']")
+    if (!png) {
+      png = document.createElement('link')
+      png.rel = 'icon'
+      png.type = 'image/png'
+      png.setAttribute('sizes', '32x32')
+      document.head.appendChild(png)
+    }
+    png.href = logos.faviconPng
   }
-  link.type = brand.logos.favicon?.endsWith('.svg') ? 'image/svg+xml' : 'image/png'
-  link.href = brand.logos.favicon
+  upsertLink('apple-touch-icon', logos.appleTouchIcon, { sizes: '180x180' })
 
   const root = document.documentElement
   const c = brand.theme?.colors || {}
@@ -88,6 +111,11 @@ export function applyBrandToDocument() {
   setOg('og:description', brand.seo?.defaultDescription)
   setOg('og:url', brand.contact?.websiteUrl)
   setOg('og:site_name', brand.name)
+  const site = String(brand.contact?.websiteUrl || '').replace(/\/$/, '')
+  const ogPath = logos.ogImage || logos.navbar
+  if (ogPath) {
+    setOg('og:image', site ? `${site}${ogPath}` : ogPath)
+  }
 }
 
 export default brand
