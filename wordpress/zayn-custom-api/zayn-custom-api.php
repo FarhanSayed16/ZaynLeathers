@@ -19,8 +19,10 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 /* ────────────────────────────────────────────────
  * 1. CORS — Allow the React frontend origin
+ *    Must also run on rest_pre_serve_request so Woo
+ *    Store API responses include Allow-Origin (www).
  * ──────────────────────────────────────────────── */
-add_action( 'init', function () {
+function zayn_allowed_origins() {
     $allowed = [
         'http://localhost:5173',
         'http://127.0.0.1:5173',
@@ -31,6 +33,12 @@ add_action( 'init', function () {
     $frontend = rtrim( (string) get_option( 'zayn_frontend_url', '' ), '/' );
     if ( $frontend ) {
         $allowed[] = $frontend;
+        // Also allow www / apex twin of the configured frontend URL
+        if ( str_starts_with( $frontend, 'https://www.' ) ) {
+            $allowed[] = 'https://' . substr( $frontend, strlen( 'https://www.' ) );
+        } elseif ( str_starts_with( $frontend, 'https://' ) ) {
+            $allowed[] = 'https://www.' . substr( $frontend, strlen( 'https://' ) );
+        }
     }
 
     $extra = get_option( 'zayn_cors_origins', '' );
@@ -40,23 +48,55 @@ add_action( 'init', function () {
         }
     }
 
-    $origin = isset( $_SERVER['HTTP_ORIGIN'] ) ? rtrim( $_SERVER['HTTP_ORIGIN'], '/' ) : '';
+    return array_values( array_unique( $allowed ) );
+}
 
-    $allow = in_array( $origin, $allowed, true )
-        || (bool) preg_match( '#^https://[a-z0-9-]+\.vercel\.app$#i', $origin );
+function zayn_request_origin() {
+    return isset( $_SERVER['HTTP_ORIGIN'] ) ? rtrim( (string) $_SERVER['HTTP_ORIGIN'], '/' ) : '';
+}
 
-    if ( $allow && $origin ) {
-        header( "Access-Control-Allow-Origin: $origin" );
-        header( 'Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS' );
-        header( 'Access-Control-Allow-Headers: Content-Type, Authorization, Cart-Token, Nonce' );
-        header( 'Access-Control-Allow-Credentials: true' );
-
-        if ( ( $_SERVER['REQUEST_METHOD'] ?? '' ) === 'OPTIONS' ) {
-            status_header( 200 );
-            exit;
-        }
+function zayn_origin_is_allowed( $origin ) {
+    if ( ! $origin ) {
+        return false;
     }
-});
+    return in_array( $origin, zayn_allowed_origins(), true )
+        || (bool) preg_match( '#^https://[a-z0-9-]+\.vercel\.app$#i', $origin );
+}
+
+function zayn_send_cors_headers() {
+    $origin = zayn_request_origin();
+    if ( ! zayn_origin_is_allowed( $origin ) ) {
+        return false;
+    }
+
+    header( "Access-Control-Allow-Origin: $origin" );
+    header( 'Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS' );
+    header( 'Access-Control-Allow-Headers: Content-Type, Authorization, Cart-Token, Nonce, X-WC-Store-API-Nonce' );
+    header( 'Access-Control-Expose-Headers: Cart-Token, Nonce, X-WC-Store-API-Nonce, X-WP-Total, X-WP-TotalPages, Link' );
+    header( 'Access-Control-Allow-Credentials: true' );
+    header( 'Vary: Origin' );
+    return true;
+}
+
+add_action( 'init', function () {
+    if ( ! zayn_send_cors_headers() ) {
+        return;
+    }
+    if ( ( $_SERVER['REQUEST_METHOD'] ?? '' ) === 'OPTIONS' ) {
+        status_header( 200 );
+        exit;
+    }
+}, 0 );
+
+// Force CORS on every REST / Store API response (WC often omits Allow-Origin).
+add_filter( 'rest_pre_serve_request', function ( $served ) {
+    zayn_send_cors_headers();
+    return $served;
+}, 15 );
+
+// Headless Store API: Cart-Token identifies the cart; browser cannot always
+// read/send Woo nonces across www → wp until CORS expose headers are live.
+add_filter( 'woocommerce_store_api_disable_nonce_check', '__return_true' );
 
 /* ────────────────────────────────────────────────
  * 2. SITE SETTINGS — /wp-json/zayn/v1/settings

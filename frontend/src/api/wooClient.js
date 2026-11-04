@@ -24,6 +24,7 @@ const WC_CS   = import.meta.env.VITE_WC_CONSUMER_SECRET; // cs_xxxxx
  * instead of cookies for headless frontends)
  * ──────────────────────────────────────────────── */
 const CART_TOKEN_KEY = "zayn_cart_token";
+const STORE_NONCE_KEY = "zayn_store_nonce";
 
 function getCartToken() {
   return localStorage.getItem(CART_TOKEN_KEY) || "";
@@ -35,6 +36,19 @@ function setCartToken(token) {
 
 function clearCartToken() {
   localStorage.removeItem(CART_TOKEN_KEY);
+  clearStoreNonce();
+}
+
+function getStoreNonce() {
+  return localStorage.getItem(STORE_NONCE_KEY) || "";
+}
+
+function setStoreNonce(nonce) {
+  if (nonce) localStorage.setItem(STORE_NONCE_KEY, nonce);
+}
+
+function clearStoreNonce() {
+  localStorage.removeItem(STORE_NONCE_KEY);
 }
 
 /* ────────────────────────────────────────────────
@@ -129,9 +143,12 @@ async function request(url, options = {}) {
     signal: merged.signal || AbortSignal.timeout(45000),
   });
 
-  // Capture Cart-Token from Store API responses for session persistence
-  const cartToken = res.headers.get("Cart-Token") || res.headers.get("X-WC-Store-API-Nonce");
+  // Capture Store API session headers (readable only when CORS exposes them)
+  const cartToken = res.headers.get("Cart-Token");
   if (cartToken) setCartToken(cartToken);
+  const storeNonce =
+    res.headers.get("Nonce") || res.headers.get("X-WC-Store-API-Nonce");
+  if (storeNonce) setStoreNonce(storeNonce);
 
   if (!res.ok) {
     let errorMsg = `HTTP ${res.status}`;
@@ -165,8 +182,13 @@ function authRequest(url, token, options = {}) {
  */
 function storeRequest(url, options = {}) {
   const cartToken = getCartToken();
+  const storeNonce = getStoreNonce();
   const headers = { ...options.headers };
   if (cartToken) headers["Cart-Token"] = cartToken;
+  if (storeNonce) {
+    headers.Nonce = storeNonce;
+    headers["X-WC-Store-API-Nonce"] = storeNonce;
+  }
   return request(url, { ...options, headers });
 }
 
@@ -176,8 +198,13 @@ function storeRequest(url, options = {}) {
  */
 function storeAuthRequest(url, token, options = {}) {
   const cartToken = getCartToken();
+  const storeNonce = getStoreNonce();
   const headers = { ...options.headers };
   if (cartToken) headers["Cart-Token"] = cartToken;
+  if (storeNonce) {
+    headers.Nonce = storeNonce;
+    headers["X-WC-Store-API-Nonce"] = storeNonce;
+  }
   headers.Authorization = `Bearer ${token}`;
   return request(url, { ...options, headers });
 }
