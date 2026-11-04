@@ -1,25 +1,37 @@
-import { motion } from "framer-motion";
+import { statusLabel, TRACKING_STAGES, trackingStageIndex } from "../utils/orderStatus";
 
-const steps = ["OrderPlaced", "Shipped", "OutForDelivery", "Delivered"];
-
+/**
+ * Shared live-status bar. Always uses TRACKING_STAGES so Woo status changes show correctly.
+ */
 const OrderTracker = ({ status }) => {
-  const activeIndex = steps.indexOf(status);
+  const activeIndex = trackingStageIndex(status);
 
   return (
-    <div className="flex justify-between mt-6">
-      {steps.map((step, index) => (
-        <div key={step} className="flex-1 text-center">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center
-              ${index <= activeIndex ? "bg-green-500 text-white" : "bg-gray-300"}`}
-          >
-            ✓
-          </motion.div>
-          <p className="text-xs mt-2">{step.replace(/([A-Z])/g, " $1")}</p>
-        </div>
-      ))}
+    <div className="mt-4">
+      <div className="flex items-center">
+        {TRACKING_STAGES.map((stage, index) => {
+          const done = activeIndex >= 0 && index <= activeIndex;
+          return (
+            <div key={stage} className="flex items-center flex-1">
+              <div
+                className={`w-3 h-3 rounded-full border shrink-0 ${
+                  done ? "bg-green-600 border-green-600" : "bg-white border-gray-300"
+                }`}
+              />
+              {index < TRACKING_STAGES.length - 1 && (
+                <div className={`flex-1 h-0.5 ${done ? "bg-green-600" : "bg-gray-200"}`} />
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex justify-between text-[10px] text-tz-navy/45 mt-1">
+        {TRACKING_STAGES.map((stage) => (
+          <span key={stage} className="w-[20%] text-center">
+            {statusLabel(stage)}
+          </span>
+        ))}
+      </div>
     </div>
   );
 };

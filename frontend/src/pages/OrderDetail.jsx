@@ -5,12 +5,20 @@ import { toast } from "react-toastify";
 import { ShopContext } from "../context/ShopContext";
 import Title from "../components/Title";
 import { authHeaders, formatAddressLine } from "../utils/india";
-import { shortOrderId, statusLabel, TRACKING_STAGES } from "../utils/orderStatus";
+import {
+  canCustomerCancel,
+  paymentStatusLabel,
+  resolveItemStatus,
+  shortOrderId,
+} from "../utils/orderStatus";
 import {
   customerInvoiceState,
+  orderHasDeliveredItem,
   orderItemsSubtotal,
   paymentMethodLabel,
 } from "../utils/orderReceipt";
+import OrderTracker from "../components/OrderTracker";
+import StatusBadge from "../components/StatusBadge";
 import * as shopApi from "../api/shopApi";
 import { isWooMode } from "../api/mode";
 
@@ -95,8 +103,9 @@ const OrderDetail = () => {
   };
 
   const copyId = () => {
-    navigator.clipboard.writeText(String(order._id));
-    toast.success("Order ID copied");
+    const value = String(order.orderNumber || order._id);
+    navigator.clipboard.writeText(value);
+    toast.success(`Order #${value} copied`);
   };
 
   const downloadInvoice = async () => {
@@ -154,12 +163,13 @@ const OrderDetail = () => {
 
   const addr = order.address || {};
   const pd = order.paymentDetails || {};
-  const hasDelivered = (order.items || []).some((i) => i.status === "Delivered");
   const canReturn =
-    hasDelivered &&
+    orderHasDeliveredItem(order) &&
     !order.shipping?.return?.requested &&
     !(order.items || []).some((i) =>
-      ["ReturnRequested", "ReturnInTransit", "Returned"].includes(i.status)
+      ["ReturnRequested", "ReturnInTransit", "Returned"].includes(
+        resolveItemStatus(order, i)
+      )
     );
 
   const whatsappOn = settings?.features?.whatsapp === true;
@@ -226,12 +236,12 @@ const OrderDetail = () => {
           </div>
           <div className="flex justify-between gap-4">
             <dt className="text-tz-navy/60">Payment status</dt>
+            <dd>{paymentStatusLabel(order)}</dd>
+          </div>
+          <div className="flex justify-between gap-4">
+            <dt className="text-tz-navy/60">Fulfillment</dt>
             <dd>
-              {order.payment?.paid
-                ? "Paid in full"
-                : order.paymentMethod === "cod" || order.paymentMethod === "COD"
-                  ? "Pay on delivery"
-                  : "Payment pending"}
+              <StatusBadge status={order.status} />
             </dd>
           </div>
           {order.paymentMethod === "Partial" && pd.advanceAmount != null && (
@@ -359,11 +369,9 @@ const OrderDetail = () => {
 
       <div className="space-y-4">
         {(order.items || []).map((item) => {
-          const currentIndex = TRACKING_STAGES.includes(item.status)
-            ? TRACKING_STAGES.indexOf(item.status)
-            : -1;
+          const itemStatus = resolveItemStatus(order, item);
           return (
-            <div key={item._id} className="bg-white rounded-2xl border border-gray-200 p-4">
+            <div key={`${item._id}-${item.size || ""}`} className="bg-white rounded-2xl border border-gray-200 p-4">
               <div className="flex gap-4">
                 <img
                   src={item?.image?.[0] || "/brand/product-placeholder.jpg"}
@@ -378,8 +386,10 @@ const OrderDetail = () => {
                     {item.color ? ` · ${item.color}` : ""}
                     {item.sku ? ` · SKU ${item.sku}` : ""}
                   </p>
-                  <p className="text-sm mt-1">{statusLabel(item.status)}</p>
-                  {item.status !== "Cancelled" && item.productId && (
+                  <div className="mt-2">
+                    <StatusBadge status={itemStatus} />
+                  </div>
+                  {itemStatus !== "Cancelled" && item.productId && (
                     <button
                       type="button"
                       onClick={() => addToCart(item.productId, item.size)}
@@ -389,7 +399,7 @@ const OrderDetail = () => {
                     </button>
                   )}
                 </div>
-                {item.status !== "Delivered" && item.status !== "Cancelled" && (
+                {canCustomerCancel(itemStatus) && (
                   <button
                     type="button"
                     onClick={() => {
@@ -402,34 +412,11 @@ const OrderDetail = () => {
                   </button>
                 )}
               </div>
-              <div className="flex items-center mt-4">
-                {TRACKING_STAGES.map((stage, i) => {
-                  const done = i <= currentIndex && item.status !== "Cancelled";
-                  return (
-                    <div key={stage} className="flex items-center flex-1">
-                      <div
-                        className={`w-3 h-3 rounded-full border ${
-                          item.status === "Cancelled"
-                            ? "bg-red-500 border-red-500"
-                            : done
-                              ? "bg-green-600 border-green-600"
-                              : "bg-white border-gray-300"
-                        }`}
-                      />
-                      {i < TRACKING_STAGES.length - 1 && (
-                        <div className={`flex-1 h-0.5 ${done ? "bg-green-600" : "bg-gray-200"}`} />
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="flex justify-between text-[10px] text-tz-navy/45 mt-1">
-                {TRACKING_STAGES.map((stage) => (
-                  <span key={stage} className="w-[20%] text-center">
-                    {statusLabel(stage)}
-                  </span>
-                ))}
-              </div>
+              {itemStatus === "Cancelled" ? (
+                <p className="mt-4 text-sm text-red-700">This item was cancelled.</p>
+              ) : (
+                <OrderTracker status={itemStatus} />
+              )}
             </div>
           );
         })}

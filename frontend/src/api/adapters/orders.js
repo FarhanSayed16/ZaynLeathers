@@ -8,6 +8,7 @@
  */
 
 import { wcUrl, request, authRequest, wpUrl } from "../wooClient.js";
+import { normalizeOrderStatus } from "../../utils/orderStatus.js";
 
 /**
  * Map a WooCommerce order → frontend order shape.
@@ -16,36 +17,58 @@ import { wcUrl, request, authRequest, wpUrl } from "../wooClient.js";
  * { _id, items, amount, address, status, paymentMethod, date, payment, tracking }
  */
 function mapOrder(wc) {
+  // Live tracker uses these keys (see utils/orderStatus.js TRACKING_STAGES).
+  const status = normalizeOrderStatus(wc.status);
+  const paymentMethod = wc.payment_method || "cod";
+  const isCod = String(paymentMethod).toLowerCase() === "cod";
+  // COD: treat as paid only once Completed (cash collected). Prepaid: use date_paid.
+  const paidForDisplay = isCod
+    ? status === "Delivered"
+    : wc.date_paid != null && String(wc.date_paid) !== "";
+  const tracking = extractTrackingMeta(wc);
+
   return {
     _id: String(wc.id),
     orderNumber: wc.number || String(wc.id),
-    status: mapOrderStatus(wc.status),
+    status,
     wcStatus: wc.status,
     date: wc.date_created,
+    createdAt: wc.date_created,
     amount: Number(wc.total || 0),
     subtotal: Number(wc.subtotal || 0),
     shippingTotal: Number(wc.shipping_total || 0),
     discountTotal: Number(wc.discount_total || 0),
-    paymentMethod: wc.payment_method || "cod",
+    paymentMethod,
     paymentMethodTitle: wc.payment_method_title || "",
     currency: wc.currency || "INR",
     items: (wc.line_items || []).map((li) => ({
       _id: String(li.product_id),
+      productId: String(li.product_id),
       name: li.name,
       price: Number(li.price || 0),
       quantity: li.quantity,
       size: extractSizeMeta(li),
       image: li.image?.src ? [li.image.src] : [],
       sku: li.sku || "",
+      // Woo has no per-line fulfillment status — inherit order status for the tracker.
+      status,
     })),
     address: mapWcAddress(wc.shipping || wc.billing),
     billing: mapWcAddress(wc.billing),
-    tracking: extractTrackingMeta(wc),
+    tracking,
+    shipping: tracking
+      ? {
+          trackingUrl: tracking.trackingUrl || "",
+          awbCode: tracking.trackingNumber || "",
+          courier: tracking.courier || "",
+        }
+      : null,
     payment: {
-      paid: wc.date_paid != null,
+      paid: paidForDisplay,
       datePaid: wc.date_paid,
       transactionId: wc.transaction_id || "",
     },
+    couponCode: (wc.coupon_lines || [])[0]?.code || "",
     couponLines: (wc.coupon_lines || []).map((c) => ({
       code: c.code,
       discount: Number(c.discount || 0),
@@ -252,22 +275,6 @@ function buildOrderPayload(orderData, paymentMethod) {
   }
 
   return order;
-}
-
-function mapOrderStatus(wcStatus) {
-  const statusMap = {
-    pending: "Pending",
-    processing: "Order Placed",
-    "on-hold": "On Hold",
-    completed: "Delivered",
-    cancelled: "Cancelled",
-    refunded: "Refunded",
-    failed: "Failed",
-    // Custom statuses (if added via plugin)
-    shipped: "Shipped",
-    "out-for-delivery": "Out for Delivery",
-  };
-  return statusMap[wcStatus] || wcStatus;
 }
 
 function mapWcAddress(wcAddr) {

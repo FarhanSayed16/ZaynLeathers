@@ -26,8 +26,10 @@ const VALUES = [
 ];
 
 const About = () => {
+  const heroImage =
+    brand.about?.heroImage || brand.about?.storyImage || "/brand/heroes/banner-1-men.png";
   const storyImage = brand.about?.storyImage || "/brand/heroes/banner-1-men.png";
-  const founderImage = brand.about?.founderImage || "/brand/zayn-logo-black.png";
+  const founderImage = brand.about?.founderImage || brand.logos?.navbar || "/brand/zayn-logo-black.png";
 
   return (
     <div className="min-h-screen bg-tz-cream text-tz-navy">
@@ -36,14 +38,13 @@ const About = () => {
         description={`Learn more about ${brand.name} — manufacturer-direct genuine leather since 2015.`}
       />
 
-      {/* Full-bleed leather hero */}
       <section className="relative min-h-[68vh] sm:min-h-[78vh] flex items-end overflow-hidden">
         <img
-          src={storyImage}
+          src={heroImage}
           alt=""
-          className="absolute inset-0 h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full object-cover object-[70%_center]"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/35 to-black/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/25" />
         <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 pb-14 sm:pb-20 pt-32">
           <motion.p
             initial={{ opacity: 0 }}
@@ -75,9 +76,8 @@ const About = () => {
 
       <TrustStrip />
 
-      {/* Story */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
-        <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+        <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -111,23 +111,26 @@ const About = () => {
             variants={fadeUp}
             className="order-1 lg:order-2"
           >
-            <img
-              src={storyImage}
-              alt={`${brand.name} leather craft`}
-              className="w-full aspect-[4/5] sm:aspect-[4/3] object-cover"
-            />
+            <div className="overflow-hidden bg-tz-navy/5">
+              <img
+                src={storyImage}
+                alt={`${brand.name} leather craft`}
+                className="w-full aspect-[3/4] object-cover object-center"
+              />
+            </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Founder note */}
       <section className="bg-tz-navy text-white">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-16 sm:py-20 text-center">
-          <img
-            src={founderImage}
-            alt=""
-            className="mx-auto h-20 w-20 sm:h-24 sm:w-24 rounded-full object-cover border border-white/20"
-          />
+          <div className="mx-auto h-24 w-24 sm:h-28 sm:w-28 rounded-full overflow-hidden border border-white/25 bg-white/5 ring-1 ring-white/10">
+            <img
+              src={founderImage}
+              alt=""
+              className="h-full w-full object-cover object-[center_18%]"
+            />
+          </div>
           <p className="mt-8 font-display text-xl sm:text-2xl md:text-3xl italic font-medium leading-relaxed text-white/95">
             “{brand.about.founderNote}”
           </p>
@@ -138,7 +141,6 @@ const About = () => {
         </div>
       </section>
 
-      {/* Values */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
         <div className="text-center max-w-2xl mx-auto">
           <p className="text-[11px] font-semibold tracking-[0.22em] uppercase text-tz-navy/45">
@@ -158,7 +160,6 @@ const About = () => {
         </div>
       </section>
 
-      {/* CTA */}
       <section className="border-t border-tz-navy/10 bg-[#f7f4ef]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-16 sm:py-20 text-center">
           <h2 className="font-display text-3xl sm:text-4xl text-tz-navy">
