@@ -88,14 +88,27 @@ add_action( 'init', function () {
     }
 }, 0 );
 
-// Force CORS on every REST / Store API response (WC often omits Allow-Origin).
+// Force CORS on every REST response (including custom zayn routes).
 add_filter( 'rest_pre_serve_request', function ( $served ) {
     zayn_send_cors_headers();
     return $served;
 }, 15 );
 
-// Headless Store API: Cart-Token identifies the cart; browser cannot always
-// read/send Woo nonces across www → wp until CORS expose headers are live.
+/*
+ * WooCommerce Store API only adds Access-Control-Allow-Origin when the
+ * Origin passes is_allowed_http_origin() OR a valid Cart-Token is sent.
+ * Register the React shop origins so www.zaynleather.com is allowed.
+ */
+add_filter( 'allowed_http_origins', function ( $origins ) {
+    return array_values( array_unique( array_merge( (array) $origins, zayn_allowed_origins() ) ) );
+} );
+
+add_filter( 'allowed_http_origin', function ( $allowed, $origin ) {
+    $origin = rtrim( (string) $origin, '/' );
+    return $allowed || zayn_origin_is_allowed( $origin );
+}, 10, 2 );
+
+// Prefer Cart-Token over Nonce for headless; keep nonce check off as fallback.
 add_filter( 'woocommerce_store_api_disable_nonce_check', '__return_true' );
 
 /* ────────────────────────────────────────────────

@@ -10,20 +10,12 @@ import * as wooProducts from "./adapters/products.js";
 import * as wooCategories from "./adapters/categories.js";
 import * as wooSettings from "./adapters/settings.js";
 import * as wooAuth from "./adapters/auth.js";
-import * as wooCart from "./adapters/cart.js";
 import * as wooWishlist from "./adapters/wishlist.js";
 import * as wooOrders from "./adapters/orders.js";
 import * as wooCoupons from "./adapters/coupons.js";
 import * as wooReviews from "./adapters/reviews.js";
 
 const nodeBase = () => getApiBase();
-
-/** Cached Store API cart (Woo) for item-key lookups on update/remove. */
-let wooRawCart = null;
-
-function setWooRaw(raw) {
-  wooRawCart = raw || null;
-}
 
 async function nodeGet(path, token) {
   const res = await axios.get(`${nodeBase()}${path}`, {
@@ -163,66 +155,30 @@ export async function resetPassword(token, password, email = "") {
 
 export async function addToCart(itemId, size, token) {
   if (isWooMode) {
-    // Guest: local only (caller updates localStorage). Logged-in: Store API.
-    if (!token) {
-      return { success: true, localOnly: true };
-    }
-    const { cartData, raw } = await wooCart.addToCart(itemId, size, 1, token);
-    setWooRaw(raw);
-    return { success: true, cartData };
+    // Headless Woo: keep cart in the browser. Checkout creates the Woo order
+    // from these line items via wc/v3. Avoid Store API cart (CORS/nonce on www→wp).
+    return { success: true, localOnly: true };
   }
   return nodePost("/api/cart/add", { itemId, size }, token);
 }
 
 export async function updateCart(itemId, size, quantity, token) {
   if (isWooMode) {
-    if (!token) {
-      return { success: true, localOnly: true };
-    }
-    if (!wooRawCart) {
-      const { raw } = await wooCart.getCart(token);
-      setWooRaw(raw);
-    }
-    const keyMap = wooCart.buildItemKeyMap(wooRawCart);
-    const itemKey = keyMap[`${itemId}:${size}`];
-    if (!itemKey) {
-      if (quantity > 0) {
-        const { cartData, raw } = await wooCart.addToCart(
-          itemId,
-          size,
-          quantity,
-          token
-        );
-        setWooRaw(raw);
-        return { success: true, cartData };
-      }
-      return { success: true, cartData: {} };
-    }
-    const { cartData, raw } = await wooCart.updateCartItem(
-      itemKey,
-      quantity,
-      token
-    );
-    setWooRaw(raw);
-    return { success: true, cartData };
+    return { success: true, localOnly: true };
   }
   return nodePost("/api/cart/update", { itemId, size, quantity }, token);
 }
 
 export async function getCart(token) {
   if (isWooMode) {
-    const { cartData, raw } = await wooCart.getCart(token);
-    setWooRaw(raw);
-    return { success: true, cartData };
+    return { success: true, cartData: null, localOnly: true };
   }
   return nodePost("/api/cart/get", {}, token);
 }
 
 export async function mergeCart(guestCart, token) {
   if (isWooMode) {
-    const { cartData, raw } = await wooCart.mergeGuestCart(guestCart, token);
-    setWooRaw(raw);
-    return { success: true, cartData };
+    return { success: true, cartData: guestCart || {}, localOnly: true };
   }
   return nodePost("/api/cart/merge", { guestCart }, token);
 }

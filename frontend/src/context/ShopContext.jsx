@@ -89,7 +89,8 @@ const ShopContextProvider = (props) => {
       setCartItems(next);
       const quiet = options.silent === true;
 
-      if (!token) {
+      // Woo / Hostinger: cart stays in the browser; order API creates the WC order.
+      if (isWooMode || !token) {
         writeGuestCart(next);
         if (!quiet) toast.success("Added to cart");
         return true;
@@ -138,7 +139,7 @@ const ShopContextProvider = (props) => {
       const next = setCartQty(cartItems, itemId, size, quantity);
       setCartItems(next);
 
-      if (!token) {
+      if (isWooMode || !token) {
         writeGuestCart(next);
         return;
       }
@@ -245,6 +246,11 @@ const ShopContextProvider = (props) => {
   const mergeAndLoadCart = useCallback(
     async (authToken) => {
       const guest = readGuestCart();
+      // Woo mode: keep the browser cart after login (no Store API sync).
+      if (isWooMode) {
+        if (cartHasItems(guest)) setCartItems(guest);
+        return;
+      }
       try {
         if (cartHasItems(guest)) {
           const response = await shopApi.mergeCart(guest, authToken);
