@@ -76,8 +76,9 @@ const brand = {
     founderName: "Zayn Leathers",
     founderNote:
       "Exceptional leather jackets should be defined by craftsmanship, not excessive markups.",
-    heroVideo: "/brand/about-video.mp4",
-    storyImage: "/brand/about-story.png",
+    // Still image only — do not use leftover totezie / wrong-brand videos.
+    heroVideo: "",
+    storyImage: "/brand/about-story.jpg",
     founderImage: "/brand/about-founder.jpg",
   },
 

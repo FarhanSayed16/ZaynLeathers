@@ -136,6 +136,74 @@ add_filter( 'allowed_http_origin', function ( $allowed, $origin ) {
 add_filter( 'woocommerce_store_api_disable_nonce_check', '__return_true' );
 
 /* ────────────────────────────────────────────────
+ * 1b. CLEAN ORDER NUMBERS (#1001, #1002, …)
+ *     Woo uses the shared WP post ID (products already
+ *     consumed ~23k IDs). We store a separate shop number.
+ * ──────────────────────────────────────────────── */
+add_action( 'init', function () {
+    if ( false === get_option( 'zayn_next_order_number', false ) ) {
+        update_option( 'zayn_next_order_number', 1001 );
+    }
+} );
+
+/**
+ * Assign the next clean shop order number once per order.
+ *
+ * @param int|WC_Order $order_id Order id or object.
+ */
+function zayn_assign_order_number( $order_id ) {
+    $order = $order_id instanceof WC_Order ? $order_id : wc_get_order( $order_id );
+    if ( ! $order ) {
+        return;
+    }
+    if ( $order->get_meta( '_zayn_order_number' ) ) {
+        return;
+    }
+
+    $next = (int) get_option( 'zayn_next_order_number', 1001 );
+    if ( $next < 1 ) {
+        $next = 1001;
+    }
+
+    $order->update_meta_data( '_zayn_order_number', (string) $next );
+    $order->save();
+    update_option( 'zayn_next_order_number', $next + 1 );
+}
+
+add_action( 'woocommerce_new_order', 'zayn_assign_order_number', 20 );
+add_action( 'woocommerce_checkout_order_processed', 'zayn_assign_order_number', 20 );
+
+add_filter( 'woocommerce_order_number', function ( $order_number, $order ) {
+    $custom = $order ? $order->get_meta( '_zayn_order_number' ) : '';
+    return $custom !== '' && $custom !== null ? (string) $custom : $order_number;
+}, 10, 2 );
+
+/**
+ * One-time: give existing orders clean numbers (oldest first).
+ */
+function zayn_backfill_order_numbers() {
+    if ( ! function_exists( 'wc_get_orders' ) ) {
+        return 0;
+    }
+    $orders = wc_get_orders([
+        'limit'   => -1,
+        'orderby' => 'date',
+        'order'   => 'ASC',
+        'return'  => 'objects',
+    ]);
+    $count = 0;
+    $next  = 1001;
+    foreach ( $orders as $order ) {
+        $order->update_meta_data( '_zayn_order_number', (string) $next );
+        $order->save();
+        $next++;
+        $count++;
+    }
+    update_option( 'zayn_next_order_number', $next );
+    return $count;
+}
+
+/* ────────────────────────────────────────────────
  * 2. SITE SETTINGS — /wp-json/zayn/v1/settings
  * ──────────────────────────────────────────────── */
 add_action( 'rest_api_init', function () {
@@ -567,10 +635,12 @@ function zayn_razorpay_verify( $request ) {
     $order->set_total( $amount );
     $order->payment_complete( $razorpay_payment_id );
     $order->save();
+    zayn_assign_order_number( $order );
 
     return rest_ensure_response([
         'success' => true,
         'orderId' => $order->get_id(),
+        'orderNumber' => $order->get_order_number(),
         'message' => 'Payment verified and order placed',
     ]);
 }
@@ -589,6 +659,12 @@ add_action( 'admin_menu', function () {
 });
 
 function zayn_settings_page() {
+    if ( isset( $_POST['zayn_backfill_order_numbers'] ) ) {
+        check_admin_referer( 'zayn_settings_nonce' );
+        $n = zayn_backfill_order_numbers();
+        echo '<div class="notice notice-success"><p>Renumbered ' . (int) $n . ' orders starting at #1001. Next new order will continue from there.</p></div>';
+    }
+
     if ( isset( $_POST['zayn_save_settings'] ) ) {
         check_admin_referer( 'zayn_settings_nonce' );
         update_option( 'zayn_delivery_fee', intval( $_POST['zayn_delivery_fee'] ?? 41 ) );
@@ -598,6 +674,8 @@ function zayn_settings_page() {
         update_option( 'zayn_razorpay_key_secret', sanitize_text_field( $_POST['zayn_razorpay_key_secret'] ?? '' ) );
         update_option( 'zayn_frontend_url', esc_url_raw( $_POST['zayn_frontend_url'] ?? 'https://zaynleather.com' ) );
         update_option( 'zayn_cors_origins', sanitize_text_field( $_POST['zayn_cors_origins'] ?? '' ) );
+        $next_ord = max( 1, intval( $_POST['zayn_next_order_number'] ?? 1001 ) );
+        update_option( 'zayn_next_order_number', $next_ord );
 
         $promo = [
             'isActive' => isset( $_POST['zayn_promo_active'] ),
@@ -665,6 +743,7 @@ function zayn_settings_page() {
     $rzp_secret        = get_option( 'zayn_razorpay_key_secret', '' );
     $frontend_url      = get_option( 'zayn_frontend_url', 'https://zaynleather.com' );
     $cors_origins      = get_option( 'zayn_cors_origins', '' );
+    $next_order_num    = (int) get_option( 'zayn_next_order_number', 1001 );
 
     $promo_raw = get_option( 'zayn_promo_strip', '' );
     $promo     = json_decode( is_string( $promo_raw ) ? $promo_raw : '', true );
@@ -746,7 +825,22 @@ function zayn_settings_page() {
                     <td><input type="text" name="zayn_cors_origins" value="<?php echo esc_attr( $cors_origins ); ?>" class="large-text" placeholder="https://staging.example.com, https://preview.example.com" />
                     <p class="description">Comma-separated. Vercel preview URLs (<code>*.vercel.app</code>) are allowed automatically.</p></td>
                 </tr>
+                <tr>
+                    <th>Next shop order #</th>
+                    <td>
+                        <input type="number" min="1" name="zayn_next_order_number" value="<?php echo esc_attr( $next_order_num ); ?>" />
+                        <p class="description">Customer-facing numbers (e.g. #1001). Woo’s internal ID stays high because products already used those IDs — that is normal and must not be reset.</p>
+                    </td>
+                </tr>
             </table>
+
+            <h2>Clean up order numbers</h2>
+            <p>Existing test/live orders still show WordPress IDs (23xxx) until you renumber them once. This sets them to #1001, #1002, … by date (oldest first) and advances “Next shop order #”.</p>
+            <p>
+                <button type="submit" name="zayn_backfill_order_numbers" value="1" class="button" onclick="return confirm('Renumber ALL existing WooCommerce orders starting at #1001?');">
+                    Renumber existing orders from #1001
+                </button>
+            </p>
 
             <h2>Homepage banners</h2>
             <p class="description">Four slides. Image can be a site path such as <code>/brand/heroes/banner-1-men.png</code> or a full media URL. Leave the headline side of the photo clear — the site draws the title on the left.</p>

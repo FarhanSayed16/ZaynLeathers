@@ -172,7 +172,7 @@ const OrderDetail = () => {
   const shareInvoiceWhatsApp = () => {
     if (!order.invoice?.pdfUrl) return;
     const text = encodeURIComponent(
-      `My invoice ${order.invoice.number} for order #${shortOrderId(order._id)}:\n${order.invoice.pdfUrl}`
+      `My invoice ${order.invoice.number} for order #${order.orderNumber || shortOrderId(order._id)}:\n${order.invoice.pdfUrl}`
     );
     window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank");
   };
@@ -183,7 +183,7 @@ const OrderDetail = () => {
         ← All orders
       </Link>
       <div className="mt-3 mb-6 flex flex-wrap items-center justify-between gap-3">
-        <Title text1="ORDER" text2={`#${shortOrderId(order._id)}`} />
+        <Title text1="ORDER" text2={`#${order.orderNumber || shortOrderId(order._id)}`} />
         <button type="button" onClick={copyId} className="text-xs font-semibold underline">
           Copy full ID
         </button>

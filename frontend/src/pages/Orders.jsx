@@ -77,7 +77,7 @@ const Orders = () => {
               />
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className="text-xs text-tz-navy/45">#{shortOrderId(order._id)}</p>
+                  <p className="text-xs text-tz-navy/45">#{order.orderNumber || shortOrderId(order._id)}</p>
                   <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-tz-cream text-tz-navy/70">
                     {paymentMethodLabel(order.paymentMethod)}
                   </span>

@@ -9,7 +9,7 @@ const OrderCard = ({ order, onCancel, navigate }) => {
   return (
     <div className="bg-white rounded-xl shadow p-5 mb-6">
       <div className="flex justify-between text-sm text-gray-500 mb-4">
-        <span>Order ID: {order._id}</span>
+        <span>Order ID: {order.orderNumber || order._id}</span>
         <span>{new Date(order.date).toLocaleDateString()}</span>
       </div>
 

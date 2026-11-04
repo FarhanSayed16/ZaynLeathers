@@ -23,6 +23,13 @@ function productPhoto(product) {
   return Array.isArray(product.image) ? product.image.find(Boolean) || "" : product.image || "";
 }
 
+function isPositiveReview(review) {
+  const sentiment = String(review.sentiment || "").toLowerCase();
+  if (sentiment === "negative" || sentiment === "neutral") return false;
+  if (sentiment === "positive") return true;
+  return (Number(review.rating) || 0) >= 4;
+}
+
 function ReviewCard({ review, product }) {
   const [open, setOpen] = useState(false);
   const long = review.comment.length > PREVIEW;
@@ -33,16 +40,15 @@ function ReviewCard({ review, product }) {
     <article className="flex flex-col border border-tz-navy/10 bg-white p-5">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         <Stars value={review.rating} />
-        {review.sentiment && review.sentiment !== "Positive" ? (
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-tz-navy/50">
-            {review.sentiment}
-          </span>
-        ) : null}
         {review.timeframe ? <span className="ml-auto text-xs text-tz-navy/40">{review.timeframe}</span> : null}
       </div>
       <p className="mt-3 text-sm font-semibold text-tz-navy">
         {review.name}
-        {review.verified ? <span className="ml-2 font-normal text-xs uppercase tracking-wide text-tz-navy/40">Verified purchase</span> : null}
+        {review.verified ? (
+          <span className="ml-2 font-normal text-xs uppercase tracking-wide text-tz-navy/40">
+            Verified purchase
+          </span>
+        ) : null}
       </p>
       <p className="mt-2 text-tz-navy/80 leading-relaxed">{text}</p>
       {long ? (
@@ -68,7 +74,6 @@ const Reviews = () => {
   const { products } = useContext(ShopContext);
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
-  const [filter, setFilter] = useState("All");
   const [query, setQuery] = useState("");
   const [shown, setShown] = useState(PAGE_SIZE);
 
@@ -99,30 +104,23 @@ const Reviews = () => {
     return map;
   }, [products]);
 
-  const allReviews = useMemo(
-    () => (data?.reviews || []).map(mapCustomerReview).filter((review) => review.comment),
+  const positiveReviews = useMemo(
+    () =>
+      (data?.reviews || [])
+        .map(mapCustomerReview)
+        .filter((review) => review.comment && isPositiveReview(review)),
     [data]
   );
 
-  const searched = useMemo(() => {
+  const reviews = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    if (!needle) return allReviews;
-    return allReviews.filter((review) => review.comment.toLowerCase().includes(needle));
-  }, [allReviews, query]);
-
-  const counts = useMemo(() => {
-    const tally = { All: searched.length, Positive: 0, Neutral: 0, Negative: 0 };
-    for (const review of searched) {
-      if (tally[review.sentiment] != null) tally[review.sentiment] += 1;
-    }
-    return tally;
-  }, [searched]);
-
-  const reviews = filter === "All" ? searched : searched.filter((review) => review.sentiment === filter);
+    if (!needle) return positiveReviews;
+    return positiveReviews.filter((review) => review.comment.toLowerCase().includes(needle));
+  }, [positiveReviews, query]);
 
   useEffect(() => {
     setShown(PAGE_SIZE);
-  }, [filter, query]);
+  }, [query]);
 
   const visible = reviews.slice(0, shown);
 
@@ -130,7 +128,7 @@ const Reviews = () => {
     <div className="bg-white">
       <SEO
         title="Customer reviews"
-        description="1,125 verified customer reviews for Zayn Leathers. 99% positive feedback."
+        description="Verified positive customer reviews for Zayn Leathers. 99% positive feedback."
       />
       <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <Breadcrumbs items={[{ label: "Home", to: "/" }, { label: "Reviews" }]} />
@@ -139,7 +137,7 @@ const Reviews = () => {
         </p>
         <h1 className="mt-2 font-display text-4xl sm:text-5xl text-tz-navy">Customer reviews</h1>
         <p className="mt-4 max-w-2xl text-tz-navy/70">
-          Feedback from customers who bought Zayn Leathers pieces. Names are kept private.
+          Positive feedback from customers who bought Zayn Leathers pieces. Names are kept private.
           New reviews left on this website are added on the product page.
         </p>
 
@@ -176,20 +174,20 @@ const Reviews = () => {
                 </div>
               ))}
             </div>
-            <p className="mt-4 text-sm text-tz-navy/60">
-              Past 12 months: {year.positive?.toLocaleString?.() || year.positive} positive
-              {" · "}
-              {year.neutral} neutral
-              {" · "}
-              {year.negative} negative
-            </p>
+            {year.positive ? (
+              <p className="mt-4 text-sm text-tz-navy/60">
+                Past 12 months: {year.positive?.toLocaleString?.() || year.positive} positive reviews
+              </p>
+            ) : null}
           </>
         ) : null}
 
         {error ? <p className="mt-8 text-sm text-red-700">{error}</p> : null}
 
-        <div className="mt-8 flex flex-col sm:flex-row sm:items-center gap-3">
-          <label className="sr-only" htmlFor="review-search">Search reviews</label>
+        <div className="mt-8">
+          <label className="sr-only" htmlFor="review-search">
+            Search reviews
+          </label>
           <input
             id="review-search"
             type="search"
@@ -198,23 +196,6 @@ const Reviews = () => {
             placeholder="Search reviews"
             className="w-full sm:max-w-xs border border-tz-navy/15 px-3 py-2 text-sm text-tz-navy placeholder:text-tz-navy/40"
           />
-          <div className="flex flex-wrap gap-2">
-            {["All", "Positive", "Neutral", "Negative"].map((option) => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => setFilter(option)}
-                className={`px-4 py-2 text-sm border ${
-                  filter === option
-                    ? "bg-tz-navy text-white border-tz-navy"
-                    : "border-tz-navy/15 text-tz-navy"
-                }`}
-              >
-                {option}
-                {data ? <span className="ml-1.5 opacity-70">{counts[option].toLocaleString()}</span> : null}
-              </button>
-            ))}
-          </div>
         </div>
 
         {!data && !error ? (
@@ -250,7 +231,10 @@ const Reviews = () => {
         ) : null}
 
         <p className="mt-10 text-sm text-tz-navy/60">
-          Looking for a jacket? <Link to="/shop" className="font-semibold underline underline-offset-4">Shop the collection</Link>
+          Looking for a jacket?{" "}
+          <Link to="/shop" className="font-semibold underline underline-offset-4">
+            Shop the collection
+          </Link>
         </p>
       </div>
     </div>
