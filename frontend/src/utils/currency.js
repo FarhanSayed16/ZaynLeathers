@@ -18,13 +18,23 @@ function smartRound(rawConverted) {
 
 // Format a stored INR price for the selected display currency.
 export function formatPriceUtil(priceINR, targetCurrency, rates) {
-  if (priceINR == null || priceINR === "" || isNaN(priceINR)) return priceINR;
-
+  if (priceINR == null || priceINR === "") return "";
   const numPrice = Number(priceINR);
+  if (!Number.isFinite(numPrice)) return "";
+
   const currency = CURRENCIES[targetCurrency] ? targetCurrency : DEFAULT_CURRENCY;
 
   if (currency === "INR") {
     return `${CURRENCIES.INR.symbol}${numPrice.toLocaleString("en-IN")}`;
+  }
+
+  // Empty cart / zero total — never smartRound(0) into $-0.01
+  if (numPrice === 0) {
+    const { symbol, locale } = CURRENCIES[currency];
+    return `${symbol}${(0).toLocaleString(locale, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
   }
 
   const rate = rates?.[currency];

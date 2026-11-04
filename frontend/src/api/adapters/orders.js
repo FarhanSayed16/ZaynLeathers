@@ -222,7 +222,8 @@ function buildOrderPayload(orderData, paymentMethod) {
     payment_method: paymentMethod,
     payment_method_title:
       paymentMethod === "cod" ? "Cash on Delivery" : "Razorpay",
-    set_paid: paymentMethod === "cod",
+    // COD is unpaid until delivery. Only Razorpay / prepaid should set_paid.
+    set_paid: false,
     status: paymentMethod === "cod" ? "processing" : "pending",
     billing: wcBilling,
     shipping: wcShipping,

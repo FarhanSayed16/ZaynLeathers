@@ -226,7 +226,13 @@ const OrderDetail = () => {
           </div>
           <div className="flex justify-between gap-4">
             <dt className="text-tz-navy/60">Payment status</dt>
-            <dd>{order.payment ? "Paid in full" : "Payment pending"}</dd>
+            <dd>
+              {order.payment?.paid
+                ? "Paid in full"
+                : order.paymentMethod === "cod" || order.paymentMethod === "COD"
+                  ? "Pay on delivery"
+                  : "Payment pending"}
+            </dd>
           </div>
           {order.paymentMethod === "Partial" && pd.advanceAmount != null && (
             <>
