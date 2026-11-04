@@ -646,17 +646,135 @@ function zayn_razorpay_verify( $request ) {
 }
 
 /* ────────────────────────────────────────────────
- * 9. ADMIN SETTINGS PAGE (optional)
+ * 9. ADMIN — client-friendly “Zayn Shop” hub
  * ──────────────────────────────────────────────── */
 add_action( 'admin_menu', function () {
+    add_menu_page(
+        'Zayn Shop',
+        'Zayn Shop',
+        'manage_woocommerce',
+        'zayn-settings',
+        'zayn_settings_page',
+        'dashicons-store',
+        56
+    );
+    add_submenu_page(
+        'zayn-settings',
+        'Shop settings',
+        'Shop settings',
+        'manage_woocommerce',
+        'zayn-settings',
+        'zayn_settings_page'
+    );
+    // Keep old Settings → Zayn Leathers URL working.
     add_options_page(
         'Zayn Leathers Settings',
         'Zayn Leathers',
         'manage_options',
-        'zayn-settings',
-        'zayn_settings_page'
+        'zayn-settings-legacy',
+        function () {
+            wp_safe_redirect( admin_url( 'admin.php?page=zayn-settings' ) );
+            exit;
+        }
     );
 });
+
+add_action( 'admin_bar_menu', function ( $bar ) {
+    if ( ! current_user_can( 'manage_woocommerce' ) ) {
+        return;
+    }
+    $shop = rtrim( (string) get_option( 'zayn_frontend_url', 'https://zaynleather.com' ), '/' );
+    $bar->add_node([
+        'id'    => 'zayn-view-shop',
+        'title' => 'View live shop',
+        'href'  => $shop ?: 'https://zaynleather.com',
+        'meta'  => [ 'target' => '_blank' ],
+    ]);
+    $bar->add_node([
+        'id'    => 'zayn-shop-settings',
+        'title' => 'Zayn Shop settings',
+        'href'  => admin_url( 'admin.php?page=zayn-settings' ),
+    ]);
+}, 80 );
+
+add_action( 'wp_dashboard_setup', function () {
+    if ( ! current_user_can( 'manage_woocommerce' ) ) {
+        return;
+    }
+    wp_add_dashboard_widget( 'zayn_shop_help', 'Zayn Shop — quick help', 'zayn_dashboard_widget' );
+});
+
+function zayn_dashboard_widget() {
+    $shop = esc_url( rtrim( (string) get_option( 'zayn_frontend_url', 'https://zaynleather.com' ), '/' ) );
+    $processing = function_exists( 'wc_orders_count' ) ? (int) wc_orders_count( 'processing' ) : 0;
+    $on_hold    = function_exists( 'wc_orders_count' ) ? (int) wc_orders_count( 'on-hold' ) : 0;
+    echo '<p><strong>Orders needing attention:</strong> '
+        . (int) $processing . ' processing · '
+        . (int) $on_hold . ' on hold</p>';
+    echo '<p>';
+    echo '<a class="button button-primary" href="' . esc_url( admin_url( 'admin.php?page=wc-orders' ) ) . '">Orders</a> ';
+    echo '<a class="button" href="' . esc_url( admin_url( 'edit.php?post_type=product' ) ) . '">Products</a> ';
+    echo '<a class="button" href="' . esc_url( admin_url( 'upload.php' ) ) . '">Media / photos</a> ';
+    echo '<a class="button" href="' . esc_url( admin_url( 'admin.php?page=zayn-settings' ) ) . '">Shop settings</a> ';
+    echo '<a class="button" href="' . $shop . '" target="_blank" rel="noopener">Open live site</a>';
+    echo '</p>';
+    echo '<p class="description">To feature a product on the homepage: edit the product → check <strong>Featured</strong>, or add tag <code>new-arrival</code> / <code>bestseller</code>.</p>';
+}
+
+add_action( 'admin_enqueue_scripts', function ( $hook ) {
+    if ( $hook !== 'toplevel_page_zayn-settings' && $hook !== 'zayn-shop_page_zayn-settings' ) {
+        return;
+    }
+    wp_enqueue_media();
+    wp_enqueue_script( 'jquery' );
+} );
+
+/**
+ * Allow absolute media URLs or site-relative paths like /brand/...
+ */
+function zayn_sanitize_media_ref( $value ) {
+    $value = trim( (string) wp_unslash( $value ) );
+    if ( $value === '' ) {
+        return '';
+    }
+    if ( preg_match( '#^https?://#i', $value ) ) {
+        return esc_url_raw( $value );
+    }
+    return sanitize_text_field( $value );
+}
+
+/**
+ * Image field with WordPress Media Library upload button + preview.
+ */
+function zayn_render_media_field( $name, $value, $label = 'Image', $hint = '' ) {
+    $value   = (string) $value;
+    $is_http = ( strpos( $value, 'http' ) === 0 || strpos( $value, '//' ) === 0 );
+    ?>
+    <div class="zayn-media-field" style="margin-bottom:14px;padding:12px;background:#fff;border:1px solid #dcdcde;border-radius:4px;max-width:520px;">
+        <label style="display:block;margin-bottom:6px;"><strong><?php echo esc_html( $label ); ?></strong></label>
+        <?php if ( $hint ) : ?>
+            <p class="description" style="margin-top:0;"><?php echo esc_html( $hint ); ?></p>
+        <?php endif; ?>
+        <div class="zayn-media-preview-wrap" style="min-height:24px;">
+            <?php if ( $value !== '' && $is_http ) : ?>
+                <img class="zayn-media-preview" src="<?php echo esc_url( $value ); ?>" alt="" style="display:block;max-width:100%;height:auto;max-height:140px;margin:8px 0;object-fit:cover;border:1px solid #c3c4c7;background:#f0f0f1;" />
+            <?php elseif ( $value !== '' ) : ?>
+                <p class="description" style="margin:8px 0;">Using the default shop image. Click <strong>Upload / Select image</strong> to replace it with your own photo.</p>
+            <?php else : ?>
+                <p class="description" style="margin:8px 0;">No image yet.</p>
+            <?php endif; ?>
+        </div>
+        <p style="margin:8px 0;">
+            <button type="button" class="button button-primary zayn-media-upload">Upload / Select image</button>
+            <button type="button" class="button zayn-media-clear" <?php disabled( $value === '' ); ?>>Clear</button>
+        </p>
+        <details style="margin-top:6px;">
+            <summary style="cursor:pointer;color:#646970;">Show image link (advanced)</summary>
+            <input type="text" class="large-text zayn-media-url" name="<?php echo esc_attr( $name ); ?>" value="<?php echo esc_attr( $value ); ?>" style="margin-top:6px;" />
+        </details>
+    </div>
+    <?php
+}
 
 function zayn_settings_page() {
     if ( isset( $_POST['zayn_backfill_order_numbers'] ) ) {
@@ -695,7 +813,7 @@ function zayn_settings_page() {
         $heroes        = [];
         for ( $i = 0; $i < 4; $i++ ) {
             $fallback = $hero_defaults[ $i ];
-            $image    = sanitize_text_field( wp_unslash( $_POST[ "zayn_hero_image_$i" ] ?? '' ) );
+            $image    = zayn_sanitize_media_ref( $_POST[ "zayn_hero_image_$i" ] ?? '' );
             $heroes[] = [
                 'image'     => $image !== '' ? $image : $fallback['image'],
                 'title'     => sanitize_text_field( wp_unslash( $_POST[ "zayn_hero_title_$i" ] ?? $fallback['title'] ) ),
@@ -712,7 +830,7 @@ function zayn_settings_page() {
         $tiles         = [];
         for ( $i = 0; $i < 4; $i++ ) {
             $fallback = $tile_defaults[ $i ];
-            $image    = sanitize_text_field( wp_unslash( $_POST[ "zayn_tile_image_$i" ] ?? '' ) );
+            $image    = zayn_sanitize_media_ref( $_POST[ "zayn_tile_image_$i" ] ?? '' );
             $tiles[]  = [
                 'label' => sanitize_text_field( wp_unslash( $_POST[ "zayn_tile_label_$i" ] ?? $fallback['label'] ) ),
                 'image' => $image !== '' ? $image : $fallback['image'],
@@ -726,7 +844,7 @@ function zayn_settings_page() {
         for ( $i = 0; $i < 6; $i++ ) {
             $reels[] = [
                 'instagramLink' => esc_url_raw( wp_unslash( $_POST[ "zayn_reel_url_$i" ] ?? '' ) ),
-                'image'         => sanitize_text_field( wp_unslash( $_POST[ "zayn_reel_image_$i" ] ?? '' ) ),
+                'image'         => zayn_sanitize_media_ref( $_POST[ "zayn_reel_image_$i" ] ?? '' ),
                 'caption'       => sanitize_text_field( wp_unslash( $_POST[ "zayn_reel_caption_$i" ] ?? '' ) ),
                 'productLink'   => sanitize_text_field( wp_unslash( $_POST[ "zayn_reel_product_$i" ] ?? '' ) ),
             ];
@@ -763,147 +881,317 @@ function zayn_settings_page() {
         $reels = [];
     }
 
+    $shop_url = esc_url( rtrim( (string) $frontend_url, '/' ) ?: 'https://zaynleather.com' );
+    $tab      = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'everyday';
+    if ( ! in_array( $tab, [ 'everyday', 'homepage', 'orders', 'advanced' ], true ) ) {
+        $tab = 'everyday';
+    }
+    $base = admin_url( 'admin.php?page=zayn-settings' );
     ?>
-    <div class="wrap">
-        <h1>Zayn Leathers Settings</h1>
-        <form method="post">
+    <div class="wrap zayn-shop-wrap">
+        <h1>Zayn Shop</h1>
+        <p style="font-size:14px;max-width:720px;">Use this page to run the live storefront. Products and orders stay in the normal WooCommerce menus — shortcuts are below.</p>
+
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 20px;">
+            <a class="button button-primary" href="<?php echo esc_url( admin_url( 'admin.php?page=wc-orders' ) ); ?>">Orders</a>
+            <a class="button" href="<?php echo esc_url( admin_url( 'edit.php?post_type=product' ) ); ?>">Products</a>
+            <a class="button" href="<?php echo esc_url( admin_url( 'post-new.php?post_type=product' ) ); ?>">Add product</a>
+            <a class="button" href="<?php echo esc_url( admin_url( 'upload.php' ) ); ?>">Photos (Media)</a>
+            <a class="button" href="<?php echo esc_url( admin_url( 'edit.php?post_type=shop_coupon' ) ); ?>">Coupons</a>
+            <a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=wc-settings&tab=shipping' ) ); ?>">Shipping zones</a>
+            <a class="button" href="<?php echo $shop_url; ?>" target="_blank" rel="noopener">Open live shop ↗</a>
+        </div>
+
+        <nav class="nav-tab-wrapper" style="margin-bottom:16px;">
+            <a href="<?php echo esc_url( $base . '&tab=everyday' ); ?>" class="nav-tab <?php echo $tab === 'everyday' ? 'nav-tab-active' : ''; ?>">Everyday</a>
+            <a href="<?php echo esc_url( $base . '&tab=homepage' ); ?>" class="nav-tab <?php echo $tab === 'homepage' ? 'nav-tab-active' : ''; ?>">Homepage</a>
+            <a href="<?php echo esc_url( $base . '&tab=orders' ); ?>" class="nav-tab <?php echo $tab === 'orders' ? 'nav-tab-active' : ''; ?>">Order numbers</a>
+            <a href="<?php echo esc_url( $base . '&tab=advanced' ); ?>" class="nav-tab <?php echo $tab === 'advanced' ? 'nav-tab-active' : ''; ?>">Advanced</a>
+        </nav>
+
+        <form method="post" action="<?php echo esc_url( $base . '&tab=' . $tab ); ?>">
             <?php wp_nonce_field( 'zayn_settings_nonce' ); ?>
-            <table class="form-table">
-                <tr>
-                    <th>Delivery Fee (₹)</th>
-                    <td><input type="number" name="zayn_delivery_fee" value="<?php echo esc_attr( $delivery_fee ); ?>" /></td>
-                </tr>
-                <tr>
-                    <th>Free Shipping Threshold (₹)</th>
-                    <td><input type="number" name="zayn_free_shipping_threshold" value="<?php echo esc_attr( $free_threshold ); ?>" />
-                    <p class="description">Default 2999 — store prices are INR; shop can display USD / GBP / CAD.</p></td>
-                </tr>
-                <tr>
-                    <th>COD Enabled</th>
-                    <td><input type="checkbox" name="zayn_cod_enabled" <?php checked( $cod_enabled, '1' ); ?> /></td>
-                </tr>
-                <tr>
-                    <th>Promo strip active</th>
-                    <td><input type="checkbox" name="zayn_promo_active" <?php checked( ! empty( $promo['isActive'] ) ); ?> /></td>
-                </tr>
-                <tr>
-                    <th>Promo strip message</th>
-                    <td><input type="text" name="zayn_promo_message" value="<?php echo esc_attr( $promo['message'] ?? '' ); ?>" class="large-text" placeholder="Free expedited shipping worldwide · Handcrafted leather" /></td>
-                </tr>
-                <tr>
-                    <th>Promo strip link</th>
-                    <td><input type="url" name="zayn_promo_link" value="<?php echo esc_attr( $promo['link'] ?? '' ); ?>" class="regular-text" placeholder="https://zaynleather.com/shop" /></td>
-                </tr>
-                <tr>
-                    <th>New arrival product IDs</th>
-                    <td><input type="text" name="zayn_new_arrival_ids" value="<?php echo esc_attr( implode( ',', $home['newArrivalProductIds'] ?? [] ) ); ?>" class="large-text" placeholder="12,45,78" />
-                    <p class="description">Optional Woo product IDs (comma-separated). Else use product tag <code>new-arrival</code>.</p></td>
-                </tr>
-                <tr>
-                    <th>Bestseller product IDs</th>
-                    <td><input type="text" name="zayn_bestseller_ids" value="<?php echo esc_attr( implode( ',', $home['bestsellerProductIds'] ?? [] ) ); ?>" class="large-text" placeholder="3,9,21" />
-                    <p class="description">Optional. Else Woo “Featured” products / tag <code>bestseller</code>.</p></td>
-                </tr>
-                <tr>
-                    <th>Featured product IDs (legacy)</th>
-                    <td><input type="text" name="zayn_featured_ids" value="<?php echo esc_attr( implode( ',', $home['featuredProductIds'] ?? [] ) ); ?>" class="large-text" /></td>
-                </tr>
-                <tr>
-                    <th>Razorpay Key ID</th>
-                    <td><input type="text" name="zayn_razorpay_key_id" value="<?php echo esc_attr( $rzp_key ); ?>" class="regular-text" /></td>
-                </tr>
-                <tr>
-                    <th>Razorpay Key Secret</th>
-                    <td><input type="password" name="zayn_razorpay_key_secret" value="<?php echo esc_attr( $rzp_secret ); ?>" class="regular-text" /></td>
-                </tr>
-                <tr>
-                    <th>React Frontend URL</th>
-                    <td><input type="url" name="zayn_frontend_url" value="<?php echo esc_attr( $frontend_url ); ?>" class="regular-text" placeholder="https://zaynleather.com" /></td>
-                </tr>
-                <tr>
-                    <th>Extra CORS origins</th>
-                    <td><input type="text" name="zayn_cors_origins" value="<?php echo esc_attr( $cors_origins ); ?>" class="large-text" placeholder="https://staging.example.com, https://preview.example.com" />
-                    <p class="description">Comma-separated. Vercel preview URLs (<code>*.vercel.app</code>) are allowed automatically.</p></td>
-                </tr>
-                <tr>
-                    <th>Next shop order #</th>
-                    <td>
-                        <input type="number" min="1" name="zayn_next_order_number" value="<?php echo esc_attr( $next_order_num ); ?>" />
-                        <p class="description">Customer-facing numbers (e.g. #1001). Woo’s internal ID stays high because products already used those IDs — that is normal and must not be reset.</p>
-                    </td>
-                </tr>
-            </table>
+            <input type="hidden" name="zayn_active_tab" value="<?php echo esc_attr( $tab ); ?>" />
 
-            <h2>Clean up order numbers</h2>
-            <p>Existing test/live orders still show WordPress IDs (23xxx) until you renumber them once. This sets them to #1001, #1002, … by date (oldest first) and advances “Next shop order #”.</p>
-            <p>
-                <button type="submit" name="zayn_backfill_order_numbers" value="1" class="button" onclick="return confirm('Renumber ALL existing WooCommerce orders starting at #1001?');">
-                    Renumber existing orders from #1001
-                </button>
-            </p>
-
-            <h2>Homepage banners</h2>
-            <p class="description">Four slides. Image can be a site path such as <code>/brand/heroes/banner-1-men.png</code> or a full media URL. Leave the headline side of the photo clear — the site draws the title on the left.</p>
-            <table class="form-table">
+            <?php /* Preserve fields from other tabs when saving one tab */ ?>
+            <?php if ( $tab !== 'everyday' ) : ?>
+                <input type="hidden" name="zayn_delivery_fee" value="<?php echo esc_attr( $delivery_fee ); ?>" />
+                <input type="hidden" name="zayn_free_shipping_threshold" value="<?php echo esc_attr( $free_threshold ); ?>" />
+                <?php if ( $cod_enabled ) : ?><input type="hidden" name="zayn_cod_enabled" value="1" /><?php endif; ?>
+                <?php if ( ! empty( $promo['isActive'] ) ) : ?><input type="hidden" name="zayn_promo_active" value="1" /><?php endif; ?>
+                <input type="hidden" name="zayn_promo_message" value="<?php echo esc_attr( $promo['message'] ?? '' ); ?>" />
+                <input type="hidden" name="zayn_promo_link" value="<?php echo esc_attr( $promo['link'] ?? '' ); ?>" />
+            <?php endif; ?>
+            <?php if ( $tab !== 'homepage' ) : ?>
+                <input type="hidden" name="zayn_new_arrival_ids" value="<?php echo esc_attr( implode( ',', $home['newArrivalProductIds'] ?? [] ) ); ?>" />
+                <input type="hidden" name="zayn_bestseller_ids" value="<?php echo esc_attr( implode( ',', $home['bestsellerProductIds'] ?? [] ) ); ?>" />
+                <input type="hidden" name="zayn_featured_ids" value="<?php echo esc_attr( implode( ',', $home['featuredProductIds'] ?? [] ) ); ?>" />
                 <?php for ( $i = 0; $i < 4; $i++ ) :
                     $hero = wp_parse_args( $heroes[ $i ] ?? [], zayn_default_heroes()[ $i ] ); ?>
-                <tr>
-                    <th>Banner <?php echo (int) $i + 1; ?></th>
-                    <td>
-                        <label>Image<br><input type="text" class="large-text" name="zayn_hero_image_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $hero['image'] ); ?>" /></label><br><br>
-                        <label>Title<br><input type="text" class="regular-text" name="zayn_hero_title_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $hero['title'] ); ?>" /></label>
-                        <label style="margin-left:12px">Italic line<br><input type="text" class="regular-text" name="zayn_hero_highlight_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $hero['highlight'] ?? '' ); ?>" /></label><br><br>
-                        <label>Subtitle<br><input type="text" class="large-text" name="zayn_hero_subtitle_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $hero['subtitle'] ?? '' ); ?>" /></label><br><br>
-                        <label>Button<br><input type="text" class="regular-text" name="zayn_hero_cta_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $hero['ctaLabel'] ?? '' ); ?>" /></label>
-                        <label style="margin-left:12px">Link<br><input type="text" class="regular-text" name="zayn_hero_link_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $hero['ctaLink'] ?? '' ); ?>" /></label><br><br>
-                        <label><input type="checkbox" name="zayn_hero_active_<?php echo (int) $i; ?>" <?php checked( ! isset( $hero['isActive'] ) || $hero['isActive'] ); ?> /> Show this banner</label>
-                    </td>
-                </tr>
+                    <input type="hidden" name="zayn_hero_image_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $hero['image'] ); ?>" />
+                    <input type="hidden" name="zayn_hero_title_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $hero['title'] ); ?>" />
+                    <input type="hidden" name="zayn_hero_highlight_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $hero['highlight'] ?? '' ); ?>" />
+                    <input type="hidden" name="zayn_hero_subtitle_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $hero['subtitle'] ?? '' ); ?>" />
+                    <input type="hidden" name="zayn_hero_cta_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $hero['ctaLabel'] ?? '' ); ?>" />
+                    <input type="hidden" name="zayn_hero_link_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $hero['ctaLink'] ?? '' ); ?>" />
+                    <?php if ( ! isset( $hero['isActive'] ) || $hero['isActive'] ) : ?>
+                        <input type="hidden" name="zayn_hero_active_<?php echo (int) $i; ?>" value="1" />
+                    <?php endif; ?>
                 <?php endfor; ?>
-            </table>
-
-            <h2>Community reels</h2>
-            <p class="description">Paste an Instagram reel or post link. Optional poster image can be a full URL. Empty rows are ignored. These appear on the homepage as “Community in action”.</p>
-            <table class="form-table">
-                <?php for ( $i = 0; $i < 6; $i++ ) :
-                    $reel = $reels[ $i ] ?? []; ?>
-                <tr>
-                    <th>Reel <?php echo (int) $i + 1; ?></th>
-                    <td>
-                        <label>Instagram URL<br><input type="url" class="large-text" name="zayn_reel_url_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $reel['instagramLink'] ?? '' ); ?>" placeholder="https://www.instagram.com/reel/..." /></label><br><br>
-                        <label>Poster image URL<br><input type="text" class="large-text" name="zayn_reel_image_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $reel['image'] ?? '' ); ?>" /></label><br><br>
-                        <label>Caption<br><input type="text" class="large-text" name="zayn_reel_caption_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $reel['caption'] ?? '' ); ?>" /></label><br><br>
-                        <label>Product link<br><input type="text" class="regular-text" name="zayn_reel_product_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $reel['productLink'] ?? '' ); ?>" placeholder="/product/123" /></label>
-                    </td>
-                </tr>
-                <?php endfor; ?>
-            </table>
-
-            <h2>Shop by category</h2>
-            <p class="description">Four tiles. The name is drawn on the photo, so the image itself should not contain words.</p>
-            <table class="form-table">
                 <?php for ( $i = 0; $i < 4; $i++ ) :
                     $tile = wp_parse_args( $tiles[ $i ] ?? [], zayn_default_category_tiles()[ $i ] ); ?>
-                <tr>
-                    <th>Tile <?php echo (int) $i + 1; ?></th>
-                    <td>
-                        <label>Name<br><input type="text" class="regular-text" name="zayn_tile_label_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $tile['label'] ); ?>" /></label><br><br>
-                        <label>Image<br><input type="text" class="large-text" name="zayn_tile_image_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $tile['image'] ); ?>" /></label><br><br>
-                        <label>Link<br><input type="text" class="regular-text" name="zayn_tile_link_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $tile['link'] ); ?>" /></label>
-                    </td>
-                </tr>
+                    <input type="hidden" name="zayn_tile_label_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $tile['label'] ); ?>" />
+                    <input type="hidden" name="zayn_tile_image_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $tile['image'] ); ?>" />
+                    <input type="hidden" name="zayn_tile_link_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $tile['link'] ); ?>" />
                 <?php endfor; ?>
-            </table>
-            <input type="submit" name="zayn_save_settings" value="Save Settings" class="button-primary" />
+                <?php for ( $i = 0; $i < 6; $i++ ) :
+                    $reel = $reels[ $i ] ?? []; ?>
+                    <input type="hidden" name="zayn_reel_url_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $reel['instagramLink'] ?? '' ); ?>" />
+                    <input type="hidden" name="zayn_reel_image_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $reel['image'] ?? '' ); ?>" />
+                    <input type="hidden" name="zayn_reel_caption_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $reel['caption'] ?? '' ); ?>" />
+                    <input type="hidden" name="zayn_reel_product_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $reel['productLink'] ?? '' ); ?>" />
+                <?php endfor; ?>
+            <?php endif; ?>
+            <?php if ( $tab !== 'advanced' ) : ?>
+                <input type="hidden" name="zayn_razorpay_key_id" value="<?php echo esc_attr( $rzp_key ); ?>" />
+                <input type="hidden" name="zayn_razorpay_key_secret" value="<?php echo esc_attr( $rzp_secret ); ?>" />
+                <input type="hidden" name="zayn_frontend_url" value="<?php echo esc_attr( $frontend_url ); ?>" />
+                <input type="hidden" name="zayn_cors_origins" value="<?php echo esc_attr( $cors_origins ); ?>" />
+            <?php endif; ?>
+            <?php if ( $tab !== 'orders' && $tab !== 'advanced' ) : ?>
+                <input type="hidden" name="zayn_next_order_number" value="<?php echo esc_attr( $next_order_num ); ?>" />
+            <?php endif; ?>
+
+            <?php if ( $tab === 'everyday' ) : ?>
+                <div class="card" style="max-width:820px;padding:16px 20px;margin:0 0 16px;">
+                    <h2 style="margin-top:0;">How the client should work day to day</h2>
+                    <ol style="margin-left:1.2em;line-height:1.6;">
+                        <li><strong>New order?</strong> Open <a href="<?php echo esc_url( admin_url( 'admin.php?page=wc-orders' ) ); ?>">Orders</a> → change status (Processing → Completed) when packed/shipped.</li>
+                        <li><strong>Add / edit a jacket?</strong> <a href="<?php echo esc_url( admin_url( 'edit.php?post_type=product' ) ); ?>">Products</a> → edit price, photos, stock. Put photos in the product gallery.</li>
+                        <li><strong>Show on homepage as new / bestseller?</strong> Edit product → check <strong>Featured</strong>, or add tag <code>new-arrival</code> or <code>bestseller</code>.</li>
+                        <li><strong>Change homepage banner / promo text?</strong> Use the <em>Homepage</em> tab on this page (upload photos with the button — no file paths needed).</li>
+                        <li><strong>Discount code?</strong> <a href="<?php echo esc_url( admin_url( 'edit.php?post_type=shop_coupon' ) ); ?>">Coupons</a>.</li>
+                    </ol>
+                </div>
+
+                <h2>Shipping &amp; payments (simple)</h2>
+                <table class="form-table" role="presentation">
+                    <tr>
+                        <th scope="row">Delivery fee (₹)</th>
+                        <td>
+                            <input type="number" name="zayn_delivery_fee" value="<?php echo esc_attr( $delivery_fee ); ?>" />
+                            <p class="description">Charged when the order is below free-shipping.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Free shipping from (₹)</th>
+                        <td>
+                            <input type="number" name="zayn_free_shipping_threshold" value="<?php echo esc_attr( $free_threshold ); ?>" />
+                            <p class="description">Cart total at or above this gets free delivery. Shop can still show USD / GBP / CAD to customers.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Cash on delivery</th>
+                        <td>
+                            <label><input type="checkbox" name="zayn_cod_enabled" <?php checked( $cod_enabled, '1' ); ?> /> Allow pay-on-delivery orders</label>
+                        </td>
+                    </tr>
+                </table>
+
+                <h2>Top black promo bar</h2>
+                <table class="form-table" role="presentation">
+                    <tr>
+                        <th scope="row">Show promo bar</th>
+                        <td><label><input type="checkbox" name="zayn_promo_active" <?php checked( ! empty( $promo['isActive'] ) ); ?> /> Visible on the live shop</label></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Message</th>
+                        <td><input type="text" name="zayn_promo_message" value="<?php echo esc_attr( $promo['message'] ?? '' ); ?>" class="large-text" placeholder="Free expedited shipping worldwide · Handcrafted leather" /></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Link (optional)</th>
+                        <td><input type="url" name="zayn_promo_link" value="<?php echo esc_attr( $promo['link'] ?? '' ); ?>" class="regular-text" placeholder="<?php echo esc_attr( $shop_url . '/shop' ); ?>" /></td>
+                    </tr>
+                </table>
+            <?php endif; ?>
+
+            <?php if ( $tab === 'homepage' ) : ?>
+                <p class="description" style="max-width:720px;">Upload photos with <strong>Upload / Select image</strong>. Recommended: banners ~1800×900px, category tiles square or portrait, leave space on the left of banners for text.</p>
+
+                <h2>Homepage banners</h2>
+                <table class="form-table">
+                    <?php for ( $i = 0; $i < 4; $i++ ) :
+                        $hero = wp_parse_args( $heroes[ $i ] ?? [], zayn_default_heroes()[ $i ] ); ?>
+                    <tr>
+                        <th>Banner <?php echo (int) $i + 1; ?></th>
+                        <td>
+                            <?php zayn_render_media_field( 'zayn_hero_image_' . $i, $hero['image'], 'Banner photo', 'Wide photo. Keep the left side fairly clear for the title.' ); ?>
+                            <label>Title<br><input type="text" class="regular-text" name="zayn_hero_title_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $hero['title'] ); ?>" /></label>
+                            <label style="margin-left:12px">Italic line<br><input type="text" class="regular-text" name="zayn_hero_highlight_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $hero['highlight'] ?? '' ); ?>" /></label><br><br>
+                            <label>Subtitle<br><input type="text" class="large-text" name="zayn_hero_subtitle_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $hero['subtitle'] ?? '' ); ?>" /></label><br><br>
+                            <label>Button text<br><input type="text" class="regular-text" name="zayn_hero_cta_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $hero['ctaLabel'] ?? '' ); ?>" /></label>
+                            <label style="margin-left:12px">Button link<br><input type="text" class="regular-text" name="zayn_hero_link_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $hero['ctaLink'] ?? '' ); ?>" placeholder="/shop?department=men" /></label><br><br>
+                            <label><input type="checkbox" name="zayn_hero_active_<?php echo (int) $i; ?>" <?php checked( ! isset( $hero['isActive'] ) || $hero['isActive'] ); ?> /> Show this banner</label>
+                        </td>
+                    </tr>
+                    <?php endfor; ?>
+                </table>
+
+                <h2>Shop-by-category tiles</h2>
+                <table class="form-table">
+                    <?php for ( $i = 0; $i < 4; $i++ ) :
+                        $tile = wp_parse_args( $tiles[ $i ] ?? [], zayn_default_category_tiles()[ $i ] ); ?>
+                    <tr>
+                        <th>Tile <?php echo (int) $i + 1; ?></th>
+                        <td>
+                            <label>Name<br><input type="text" class="regular-text" name="zayn_tile_label_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $tile['label'] ); ?>" /></label><br><br>
+                            <?php zayn_render_media_field( 'zayn_tile_image_' . $i, $tile['image'], 'Tile photo', 'No text on the photo — the name is drawn on top.' ); ?>
+                            <label>Link<br><input type="text" class="regular-text" name="zayn_tile_link_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $tile['link'] ); ?>" /></label>
+                        </td>
+                    </tr>
+                    <?php endfor; ?>
+                </table>
+
+                <h2>Instagram / community reels</h2>
+                <p class="description">Paste an Instagram link. Upload an optional cover image. Leave a row empty to hide it.</p>
+                <table class="form-table">
+                    <?php for ( $i = 0; $i < 6; $i++ ) :
+                        $reel = $reels[ $i ] ?? []; ?>
+                    <tr>
+                        <th>Reel <?php echo (int) $i + 1; ?></th>
+                        <td>
+                            <label>Instagram URL<br><input type="url" class="large-text" name="zayn_reel_url_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $reel['instagramLink'] ?? '' ); ?>" placeholder="https://www.instagram.com/reel/..." /></label><br><br>
+                            <?php zayn_render_media_field( 'zayn_reel_image_' . $i, $reel['image'] ?? '', 'Cover image' ); ?>
+                            <label>Caption<br><input type="text" class="large-text" name="zayn_reel_caption_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $reel['caption'] ?? '' ); ?>" /></label><br><br>
+                            <label>Product link (optional)<br><input type="text" class="regular-text" name="zayn_reel_product_<?php echo (int) $i; ?>" value="<?php echo esc_attr( $reel['productLink'] ?? '' ); ?>" placeholder="/product/123" /></label>
+                        </td>
+                    </tr>
+                    <?php endfor; ?>
+                </table>
+
+                <details style="margin:20px 0;max-width:720px;">
+                    <summary style="cursor:pointer;font-weight:600;">Optional: pin specific product IDs (usually not needed)</summary>
+                    <p class="description">Easier way: edit a product and mark it Featured, or add tags <code>new-arrival</code> / <code>bestseller</code>. Only use IDs if you need an exact list.</p>
+                    <table class="form-table">
+                        <tr>
+                            <th>New arrival IDs</th>
+                            <td><input type="text" name="zayn_new_arrival_ids" value="<?php echo esc_attr( implode( ',', $home['newArrivalProductIds'] ?? [] ) ); ?>" class="large-text" placeholder="12,45,78" /></td>
+                        </tr>
+                        <tr>
+                            <th>Bestseller IDs</th>
+                            <td><input type="text" name="zayn_bestseller_ids" value="<?php echo esc_attr( implode( ',', $home['bestsellerProductIds'] ?? [] ) ); ?>" class="large-text" placeholder="3,9,21" /></td>
+                        </tr>
+                        <tr>
+                            <th>Featured IDs</th>
+                            <td><input type="text" name="zayn_featured_ids" value="<?php echo esc_attr( implode( ',', $home['featuredProductIds'] ?? [] ) ); ?>" class="large-text" /></td>
+                        </tr>
+                    </table>
+                </details>
+            <?php endif; ?>
+
+            <?php if ( $tab === 'orders' ) : ?>
+                <h2>Customer-facing order numbers</h2>
+                <p style="max-width:720px;">WooCommerce keeps a large internal ID (shared with products). Customers see a clean shop number instead (e.g. #1001).</p>
+                <table class="form-table">
+                    <tr>
+                        <th>Next shop order #</th>
+                        <td>
+                            <input type="number" min="1" name="zayn_next_order_number" value="<?php echo esc_attr( $next_order_num ); ?>" />
+                            <p class="description">The next new order will use this number, then count up automatically.</p>
+                        </td>
+                    </tr>
+                </table>
+                <p>
+                    <button type="submit" name="zayn_backfill_order_numbers" value="1" class="button" onclick="return confirm('Renumber ALL existing orders starting at #1001? Only do this for test orders.');">
+                        Renumber existing (test) orders from #1001
+                    </button>
+                </p>
+            <?php endif; ?>
+
+            <?php if ( $tab === 'advanced' ) : ?>
+                <div class="notice notice-info inline"><p>These fields are for your developer. The shop owner usually does not need this tab.</p></div>
+                <table class="form-table">
+                    <tr>
+                        <th>Live shop URL</th>
+                        <td><input type="url" name="zayn_frontend_url" value="<?php echo esc_attr( $frontend_url ); ?>" class="regular-text" placeholder="https://zaynleather.com" />
+                        <p class="description">Used for CORS and “View live shop” links.</p></td>
+                    </tr>
+                    <tr>
+                        <th>Extra CORS origins</th>
+                        <td><input type="text" name="zayn_cors_origins" value="<?php echo esc_attr( $cors_origins ); ?>" class="large-text" placeholder="https://staging.example.com" />
+                        <p class="description">Comma-separated. <code>*.vercel.app</code> previews are allowed automatically.</p></td>
+                    </tr>
+                    <tr>
+                        <th>Razorpay Key ID</th>
+                        <td><input type="text" name="zayn_razorpay_key_id" value="<?php echo esc_attr( $rzp_key ); ?>" class="regular-text" /></td>
+                    </tr>
+                    <tr>
+                        <th>Razorpay Key Secret</th>
+                        <td><input type="password" name="zayn_razorpay_key_secret" value="<?php echo esc_attr( $rzp_secret ); ?>" class="regular-text" autocomplete="new-password" /></td>
+                    </tr>
+                    <tr>
+                        <th>Next shop order #</th>
+                        <td><input type="number" min="1" name="zayn_next_order_number" value="<?php echo esc_attr( $next_order_num ); ?>" /></td>
+                    </tr>
+                </table>
+            <?php endif; ?>
+
+            <?php if ( $tab === 'orders' ) : ?>
+                <p class="submit">
+                    <button type="submit" name="zayn_save_settings" value="1" class="button button-primary">Save order number setting</button>
+                </p>
+            <?php else : ?>
+                <p class="submit" style="position:sticky;bottom:0;background:#f0f0f1;padding:12px 0;margin:24px 0 0;border-top:1px solid #c3c4c7;">
+                    <button type="submit" name="zayn_save_settings" value="1" class="button button-primary button-hero">Save changes</button>
+                    <a class="button button-hero" style="margin-left:8px;" href="<?php echo $shop_url; ?>" target="_blank" rel="noopener">Preview live shop</a>
+                </p>
+            <?php endif; ?>
         </form>
-        <hr />
-        <h2>Go-live checklist</h2>
-        <ol>
-            <li>Woo categories: top-level <code>men</code>, <code>women</code>, <code>kids</code>, <code>bags</code>, <code>accessories</code> (or aliases in brand config).</li>
-            <li>Mark bestsellers as <strong>Featured</strong> or tag <code>bestseller</code>; new items tag <code>new-arrival</code>.</li>
-            <li>Install JWT Auth + this plugin; set frontend URL + free shipping threshold.</li>
-            <li>Create Woo REST API keys; put in Vercel env as <code>VITE_WC_*</code>.</li>
-        </ol>
+
+        <script>
+        (function ($) {
+          function setPreview($field, url) {
+            var $box = $field.find('.zayn-media-preview-wrap');
+            if (!url) {
+              $box.html('<p class="description" style="margin:8px 0;">No image yet.</p>');
+              return;
+            }
+            if (url.indexOf('http') === 0 || url.indexOf('//') === 0) {
+              $box.html('<img class="zayn-media-preview" src="' + String(url).replace(/"/g, '&quot;') + '" alt="" style="display:block;max-width:100%;height:auto;max-height:140px;margin:8px 0;object-fit:cover;border:1px solid #c3c4c7;background:#f0f0f1;" />');
+            } else {
+              $box.html('<p class="description" style="margin:8px 0;">Using the default shop image. Click <strong>Upload / Select image</strong> to replace it.</p>');
+            }
+          }
+
+          $(document).on('click', '.zayn-media-upload', function (e) {
+            e.preventDefault();
+            var $field = $(this).closest('.zayn-media-field');
+            var $input = $field.find('.zayn-media-url');
+            var frame = wp.media({
+              title: 'Select or upload image',
+              button: { text: 'Use this image' },
+              multiple: false,
+              library: { type: 'image' }
+            });
+            frame.on('select', function () {
+              var attachment = frame.state().get('selection').first().toJSON();
+              var url = attachment.url || '';
+              $input.val(url);
+              $field.find('.zayn-media-clear').prop('disabled', !url);
+              setPreview($field, url);
+            });
+            frame.open();
+          });
+
+          $(document).on('click', '.zayn-media-clear', function (e) {
+            e.preventDefault();
+            var $field = $(this).closest('.zayn-media-field');
+            $field.find('.zayn-media-url').val('');
+            $(this).prop('disabled', true);
+            setPreview($field, '');
+          });
+        })(jQuery);
+        </script>
     </div>
     <?php
 }

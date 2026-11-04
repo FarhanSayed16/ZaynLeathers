@@ -78,8 +78,9 @@ const brand = {
       "Exceptional leather jackets should be defined by craftsmanship, not excessive markups.",
     // Still image only — do not use leftover totezie / wrong-brand videos.
     heroVideo: "",
-    storyImage: "/brand/about-story.jpg",
-    founderImage: "/brand/about-founder.jpg",
+    heroImage: "/brand/about-hero-leather.jpg",
+    storyImage: "/brand/about-story-leather.jpg",
+    founderImage: "/brand/about-founder-leather.jpg",
   },
 
   /* ---------- storefront media (files in public/brand/) ---------- */

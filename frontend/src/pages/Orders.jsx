@@ -4,8 +4,9 @@ import { ShopContext } from "../context/ShopContext";
 import Title from "../components/Title";
 import EmptyState from "../components/EmptyState";
 import { toast } from "react-toastify";
-import { shortOrderId, statusLabel } from "../utils/orderStatus";
+import { isOrderPaidForDisplay, shortOrderId } from "../utils/orderStatus";
 import { customerInvoiceState, paymentMethodLabel } from "../utils/orderReceipt";
+import StatusBadge from "../components/StatusBadge";
 import * as shopApi from "../api/shopApi";
 
 const Orders = () => {
@@ -81,7 +82,7 @@ const Orders = () => {
                   <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-tz-cream text-tz-navy/70">
                     {paymentMethodLabel(order.paymentMethod)}
                   </span>
-                  {order.payment?.paid ? (
+                  {isOrderPaidForDisplay(order) ? (
                     <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800">
                       Paid
                     </span>
@@ -93,7 +94,11 @@ const Orders = () => {
                     <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-900">
                       Partial
                     </span>
-                  ) : null}
+                  ) : (
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-900">
+                      Payment pending
+                    </span>
+                  )}
                   {invoiceState.kind === "ready" && (
                     <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-900">
                       Invoice ready
@@ -107,7 +112,9 @@ const Orders = () => {
                 <p className="text-sm text-tz-navy/60">
                   {formatPrice(order.amount)} · {new Date(order.date).toLocaleDateString("en-IN")}
                 </p>
-                <p className="text-xs mt-1">{statusLabel(first?.status)}</p>
+                <div className="mt-1.5">
+                  <StatusBadge status={first?.status || order.status} />
+                </div>
               </div>
             </Link>
           );

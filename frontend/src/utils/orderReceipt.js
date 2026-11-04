@@ -1,7 +1,9 @@
+import { normalizeOrderStatus } from "./orderStatus";
+
 /** Active line items subtotal (excludes cancelled). */
 export function orderItemsSubtotal(order) {
   return (order?.items || [])
-    .filter((i) => i.status !== "Cancelled")
+    .filter((i) => normalizeOrderStatus(i.status || order?.status) !== "Cancelled")
     .reduce((sum, i) => sum + (Number(i.price) || 0) * (Number(i.quantity) || 1), 0);
 }
 
@@ -14,12 +16,21 @@ export function paymentMethodLabel(method) {
 }
 
 export function orderHasDeliveredItem(order) {
-  return (order?.items || []).some((i) => i.status === "Delivered");
+  if (normalizeOrderStatus(order?.status) === "Delivered") return true;
+  return (order?.items || []).some(
+    (i) => normalizeOrderStatus(i.status || order?.status) === "Delivered"
+  );
 }
 
 export function orderIsFullyDelivered(order) {
-  const active = (order?.items || []).filter((i) => i.status !== "Cancelled");
-  return active.length > 0 && active.every((i) => i.status === "Delivered");
+  if (normalizeOrderStatus(order?.status) === "Delivered") return true;
+  const active = (order?.items || []).filter(
+    (i) => normalizeOrderStatus(i.status || order?.status) !== "Cancelled"
+  );
+  return (
+    active.length > 0 &&
+    active.every((i) => normalizeOrderStatus(i.status || order?.status) === "Delivered")
+  );
 }
 
 export function customerInvoiceState(order, settings) {
