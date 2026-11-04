@@ -182,9 +182,39 @@ const Cart = () => {
             {cartData.length > 0 ? (
               cartData.map((item, index) => {
                 const productData = products.find(
-                  (product) => product._id === item._id
+                  (product) => String(product._id) === String(item._id)
                 )
-                const lineUnitPrice = productData ? getSizePrice(productData, item.size) : 0
+                // Catalog still loading, or product removed from Woo — never crash on ._id
+                if (!productData) {
+                  if (productsLoading) return null
+                  return (
+                    <motion.div
+                      key={`${item._id}-${item.size}-missing`}
+                      variants={itemVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit={{ x: -100, opacity: 0, transition: { duration: 0.3 } }}
+                      className="bg-white p-4 sm:p-6 border-b border-gray-200 flex items-center justify-between gap-3"
+                    >
+                      <p className="text-sm text-gray-500">
+                        This item is no longer available (size {item.size}).
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => updateQuantity(item._id, item.size, 0)}
+                        className="p-2 hover:bg-gray-100 rounded-none text-tz-navy"
+                        aria-label="Remove unavailable item"
+                      >
+                        <FaTrashAlt className="w-4 h-4 opacity-60" />
+                      </button>
+                    </motion.div>
+                  )
+                }
+
+                const lineUnitPrice = getSizePrice(productData, item.size)
+                const thumb = Array.isArray(productData.image)
+                  ? productData.image[0]
+                  : productData.image
 
                 return (
                   <motion.div
@@ -220,7 +250,7 @@ const Cart = () => {
                             className="relative overflow-hidden rounded-none bg-gray-50 border border-gray-100"
                           >
                             <img
-                              src={productData.image[0]}
+                              src={thumb || "/brand/product-placeholder.svg"}
                               alt={productData.name}
                               className="w-16 h-20 sm:w-20 sm:h-24 object-contain p-2"
                             />

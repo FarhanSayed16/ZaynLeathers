@@ -163,7 +163,9 @@ const ShopContextProvider = (props) => {
   const getCartAmount = useCallback(() => {
     let totalAmount = 0;
     for (const items in cartItems) {
-      const itemInfo = products.find((product) => product._id === items);
+      const itemInfo = products.find(
+        (product) => String(product._id) === String(items)
+      );
       if (!itemInfo) continue;
       for (const item in cartItems[items]) {
         if (cartItems[items][item] > 0) {
@@ -359,8 +361,14 @@ const ShopContextProvider = (props) => {
   }, []);
 
   const replaceCart = useCallback((next) => {
-    setCartItems(next || {});
-    if (!tokenRef.current) writeGuestCart(next || {});
+    const cart = next || {};
+    setCartItems(cart);
+    // Woo mode keeps the cart in localStorage even when logged in, so clearing
+    // after checkout must wipe storage too (or the cart comes back on refresh).
+    if (isWooMode || !tokenRef.current) {
+      if (cartHasItems(cart)) writeGuestCart(cart);
+      else clearGuestCart();
+    }
   }, []);
 
   useEffect(() => {

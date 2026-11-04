@@ -33,6 +33,7 @@ const {
   delivery_fee,
   products,
   appliedCoupon,
+  setAppliedCoupon,
   settings,
   formatPrice,
   selectedCurrency,
@@ -334,6 +335,7 @@ const initPay = async (order, orderData, { verifyPath = '/api/order/verifyRazorp
         if (data.success) {
           toast.success(verifyPath.includes('Partial') ? "Advance paid — order placed" : "Payment Successful")
           setCartItems({})
+          setAppliedCoupon?.(null)
           navigate(data.orderId ? `/orders/${data.orderId}` : "/orders")
         } else {
           toast.error(data.message || "Payment Verification Failed")
@@ -357,6 +359,7 @@ const initPay = async (order, orderData, { verifyPath = '/api/order/verifyRazorp
 const onSubmitHandler = async (event) => {
 
   event.preventDefault()
+  if (isSubmitting) return
   setIsSubmitting(true)
 
   if (getCartAmount() === 0) {
@@ -383,7 +386,7 @@ const onSubmitHandler = async (event) => {
 
         if (cartItems[items][size] > 0) {
 
-          const product = products.find(p => p._id === items)
+          const product = products.find((p) => String(p._id) === String(items))
 
           if (product) {
 
@@ -443,6 +446,7 @@ const onSubmitHandler = async (event) => {
 
             toast.success("Order Placed Successfully")
             setCartItems({})
+            setAppliedCoupon?.(null)
             refreshProfile()
             navigate(data.orderId ? `/orders/${data.orderId}` : "/orders")
 

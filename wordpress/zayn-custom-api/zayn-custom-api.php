@@ -69,12 +69,23 @@ function zayn_send_cors_headers() {
         return false;
     }
 
+    // Never let LiteSpeed / CDN cache REST responses with a sticky CORS origin.
+    // A cached Allow-Origin from a Vercel preview breaks www.zaynleather.com.
+    if ( function_exists( 'header_remove' ) ) {
+        header_remove( 'Access-Control-Allow-Origin' );
+    }
     header( "Access-Control-Allow-Origin: $origin" );
     header( 'Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS' );
-    header( 'Access-Control-Allow-Headers: Content-Type, Authorization, Cart-Token, Nonce, X-WC-Store-API-Nonce' );
+    header( 'Access-Control-Allow-Headers: Content-Type, Authorization, Cart-Token, Nonce, X-WC-Store-API-Nonce, X-WP-Nonce' );
     header( 'Access-Control-Expose-Headers: Cart-Token, Nonce, X-WC-Store-API-Nonce, X-WP-Total, X-WP-TotalPages, Link' );
     header( 'Access-Control-Allow-Credentials: true' );
-    header( 'Vary: Origin' );
+    header( 'Vary: Origin', false );
+    header( 'Cache-Control: no-store, no-cache, must-revalidate, max-age=0' );
+    header( 'Pragma: no-cache' );
+    header( 'X-LiteSpeed-Cache-Control: no-cache' );
+    if ( function_exists( 'do_action' ) ) {
+        do_action( 'litespeed_control_set_nocache', 'zayn cors api' );
+    }
     return true;
 }
 
@@ -88,11 +99,24 @@ add_action( 'init', function () {
     }
 }, 0 );
 
-// Force CORS on every REST response (including custom zayn routes).
+// Force CORS + no-cache on every REST response (including custom zayn routes).
 add_filter( 'rest_pre_serve_request', function ( $served ) {
     zayn_send_cors_headers();
     return $served;
 }, 15 );
+
+// Mark all /wp-json/ traffic uncacheable when an Origin is present (headless shop).
+add_action( 'rest_api_init', function () {
+    if ( zayn_request_origin() ) {
+        if ( ! defined( 'DONOTCACHEPAGE' ) ) {
+            define( 'DONOTCACHEPAGE', true );
+        }
+        if ( ! defined( 'LSCACHE_NO_CACHE' ) ) {
+            define( 'LSCACHE_NO_CACHE', true );
+        }
+        do_action( 'litespeed_control_set_nocache', 'zayn rest origin' );
+    }
+}, 0 );
 
 /*
  * WooCommerce Store API only adds Access-Control-Allow-Origin when the
