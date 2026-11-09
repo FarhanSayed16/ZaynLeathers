@@ -70,8 +70,8 @@ const ProductItem = ({
             height={640}
             className="absolute inset-0 w-full h-full object-contain object-center p-1.5 transition-transform duration-700 ease-out group-hover:scale-[1.03]"
             onError={() => setImageError(true)}
-            loading="lazy"
-            decoding="async"
+            loading="eager"
+            decoding="sync"
           />
 
           {Number(availableQuantity) === 0 && (

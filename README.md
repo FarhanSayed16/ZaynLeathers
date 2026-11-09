@@ -137,7 +137,7 @@ All screenshots below were captured directly from the live running instance of t
       <div align="center">
         <h4>5. Filterable Product Catalog</h4>
         <img src="docs/screenshots/05_shop_catalog.png" alt="Shop Catalog with Filters" />
-        <p><em>Dynamic product catalog (1,420+ products) with real-time price slider, department/category facets, stock filters, and sorting.</em></p>
+        <p><em>Dynamic product catalog (1,420+ products) with real-time price slider, department/category facets, stock filters, eager image rendering, and live USD exchange rates.</em></p>
       </div>
     </td>
     <td width="50%">
@@ -160,7 +160,7 @@ All screenshots below were captured directly from the live running instance of t
       <div align="center">
         <h4>8. Shopping Bag & Order Summary</h4>
         <img src="docs/screenshots/08_cart_page.png" alt="Shopping Cart Page" />
-        <p><em>Clean cart drawer and page with free delivery progress calculation, coupon discounts, guest cart sync, and secure checkout CTA.</em></p>
+        <p><em>Active shopping cart and order summary with live item lines, size indicator, free worldwide shipping confirmation, and secure checkout CTA.</em></p>
       </div>
     </td>
   </tr>
@@ -192,7 +192,7 @@ All screenshots below were captured directly from the live running instance of t
       <div align="center">
         <h4>11. Analytics Pro Visualizer</h4>
         <img src="docs/screenshots/11_admin_analytics.png" alt="Analytics Pro Charts" />
-        <p><em>Interactive performance metrics with dynamic time frames (Today, 7D, 30D, Month), Average Order Value (AOV), and payment mix pie charts.</em></p>
+        <p><em>Interactive performance metrics with dynamic time frames, real-time revenue trendline, payment mix donut distribution (COD & Razorpay), and conversion metrics.</em></p>
       </div>
     </td>
     <td width="50%">
@@ -208,14 +208,14 @@ All screenshots below were captured directly from the live running instance of t
       <div align="center">
         <h4>13. Product Inventory & Grouped Styles</h4>
         <img src="docs/screenshots/13_admin_products_list.png" alt="Admin Product Inventory" />
-        <p><em>Inventory manager grouping variants by style, tracking stock counts, hiding/duplicating items, and quick inline editing.</em></p>
+        <p><em>Live product inventory showing product thumbnails, SKUs, category paths, INR pricing, editable stock counters, and quick actions.</em></p>
       </div>
     </td>
     <td width="50%">
       <div align="center">
         <h4>14. Product Studio & Size Matrix</h4>
         <img src="docs/screenshots/14_admin_add_product.png" alt="Add Product Studio" />
-        <p><em>Up to 8 high-resolution Cloudinary image uploads, size-based price matrix manager, color variant grouping, and SEO tagging.</em></p>
+        <p><em>Product studio displaying high-resolution gallery uploads, HSN/SAC tax classification, style IDs, and size matrix pricing.</em></p>
       </div>
     </td>
   </tr>
@@ -224,7 +224,7 @@ All screenshots below were captured directly from the live running instance of t
       <div align="center">
         <h4>15. Category & Hierarchy Builder</h4>
         <img src="docs/screenshots/15_admin_category_manager.png" alt="Category Hierarchy Builder" width="60%" />
-        <p><em>Visual tree manager configuring top-level departments, subcategories, mega menus, and storefront discovery tiles.</em></p>
+        <p><em>Complete 72-category hierarchy tree with active departments (Men, Women, Bags, Accessories) and subcategories.</em></p>
       </div>
     </td>
   </tr>

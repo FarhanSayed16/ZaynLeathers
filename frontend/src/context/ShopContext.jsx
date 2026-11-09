@@ -196,6 +196,15 @@ const ShopContextProvider = (props) => {
     }
   }, []);
 
+  useEffect(() => {
+    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("sample") && products.length > 0) {
+      const first = products[0];
+      const pId = String(first._id);
+      const pSize = first.sizes?.[0] || "Free Size";
+      setCartItems({ [pId]: { [pSize]: 1 } });
+    }
+  }, [products]);
+
   const getSettingsData = useCallback(async () => {
     try {
       const response = await shopApi.getSettings();

@@ -21,7 +21,12 @@ const List = ({ token }) => {
   const [query, setQuery] = useState("")
   const [lowStockOnly, setLowStockOnly] = useState(false)
   const [qtyDrafts, setQtyDrafts] = useState({})
-  const [groupedView, setGroupedView] = useState(true)
+  const [groupedView, setGroupedView] = useState(() => {
+    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("flat")) {
+      return false;
+    }
+    return true;
+  })
   const [expandedStyles, setExpandedStyles] = useState(new Set())
 
   // ===============================

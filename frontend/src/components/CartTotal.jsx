@@ -20,14 +20,12 @@ const CartTotal = () => {
 
   return (
     <div className='w-full'>
-      <div className='mb-4'>
-        <Title text1={"CART"} text2={"TOTAL"} />
-      </div>
-
       {subTotal > 0 && (
-        <p className="text-xs text-tz-navy/70 mb-4">
-          Free expedited shipping worldwide
-        </p>
+        <div className="flex items-center gap-2 mb-3 bg-[#f8f5f0] p-2.5 rounded border border-tz-pink-soft/60">
+          <span className="text-xs font-medium text-tz-navy">
+            ✓ Free expedited worldwide shipping included
+          </span>
+        </div>
       )}
 
       <div className='space-y-0 text-sm sm:text-base'>
