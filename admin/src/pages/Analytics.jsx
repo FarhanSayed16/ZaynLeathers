@@ -82,7 +82,15 @@ const Analytics = ({ token }) => {
   }, []);
 
   useEffect(() => {
-    applyPreset("30d");
+    const qFrom = new URLSearchParams(window.location.search).get("from");
+    const qTo = new URLSearchParams(window.location.search).get("to");
+    if (qFrom && qTo) {
+      setPreset("custom");
+      setFrom(qFrom);
+      setTo(qTo);
+    } else {
+      applyPreset("30d");
+    }
   }, [applyPreset]);
 
   const load = useCallback(async () => {

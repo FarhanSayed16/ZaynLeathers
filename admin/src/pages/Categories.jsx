@@ -10,7 +10,7 @@ const TYPE_OPTIONS = [
   { value: "category", label: "Category (leaf)" },
 ];
 
-const Categories = () => {
+const Categories = ({ token: propToken }) => {
   const [categories, setCategories] = useState([]);
   const [tree, setTree] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -23,7 +23,7 @@ const Categories = () => {
     order: 0,
   });
 
-  const token = localStorage.getItem("token");
+  const token = propToken || localStorage.getItem("token") || new URLSearchParams(window.location.search).get("token");
 
   const fetchCategories = async () => {
     try {

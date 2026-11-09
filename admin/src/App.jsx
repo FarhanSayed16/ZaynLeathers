@@ -135,7 +135,7 @@ const App = () => {
             <Route path="/review" element={<Review />} />
             <Route path="/product-reviews" element={<ProductReviews />} />
             <Route path="/settings" element={<Settings />} />
-            <Route path="/categories" element={<Categories />} />
+            <Route path="/categories" element={<Categories token={token} />} />
             <Route path="/catalog-cleanup" element={<CatalogCleanup token={token} />} />
             <Route path="/instagram" element={<InstagramPromos />} />
             <Route path="/contacts" element={<Contacts />} />
