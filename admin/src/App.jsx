@@ -34,9 +34,13 @@ export const backendUrl =
 const App = () => {
   const location = useLocation()
   const [navOpen, setNavOpen] = useState(false)
-  const [token, setToken] = useState(
-    localStorage.getItem("token") || ""
-  )
+  const [token, setToken] = useState(() => {
+    if (typeof window !== "undefined") {
+      const qToken = new URLSearchParams(window.location.search).get("token");
+      if (qToken) return qToken;
+    }
+    return localStorage.getItem("token") || "";
+  });
   const [features, setFeatures] = useState({})
   const [featuresLoading, setFeaturesLoading] = useState(true)
 

@@ -36,6 +36,7 @@ const WelcomePopup = () => {
   useEffect(() => {
     if (!enabled) return undefined;
     if (typeof window === "undefined") return undefined;
+    if (new URLSearchParams(location.search).has("nopopup")) return undefined;
     if (localStorage.getItem(STORAGE_KEY)) return undefined;
     if (AUTH_PATHS.some((p) => location.pathname.startsWith(p))) return undefined;
 

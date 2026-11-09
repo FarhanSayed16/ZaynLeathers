@@ -20,7 +20,7 @@ export default defineConfig({
     fs: { allow: ['..'] },
     proxy: {
       '/wp-json': {
-        target: 'https://zaynleather.com',
+        target: 'https://wp.zaynleather.com',
         changeOrigin: true,
         secure: true,
       },
