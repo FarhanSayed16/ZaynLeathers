@@ -95,6 +95,11 @@ const About = () => {
             <div className="mt-6 space-y-4 text-sm sm:text-base leading-relaxed text-tz-navy/75">
               <p>{brand.about?.storyLead}</p>
               <p>{brand.about?.storyBody}</p>
+              {brand.about?.legalLine ? (
+                <p className="pt-2 text-sm text-tz-navy/70 border-t border-tz-navy/10">
+                  {brand.about.legalLine}
+                </p>
+              ) : null}
             </div>
             <Link
               to="/shop"

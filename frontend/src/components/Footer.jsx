@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import { FaFacebookF, FaTwitter, FaLinkedinIn, FaInstagram, FaPinterestP } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import { FaPhoneAlt, FaEnvelope, FaWhatsapp } from "react-icons/fa";
+import { FaEnvelope, FaWhatsapp } from "react-icons/fa";
 import { toast } from "react-toastify";
 import brand from "../brand";
 import { ShopContext } from "../context/ShopContext";
@@ -22,9 +22,6 @@ const Footer = () => {
   const [email, setEmail] = useState("");
   const [subscribing, setSubscribing] = useState(false);
   const whatsappFeatureOn = settings?.features?.whatsapp === true;
-  const phoneHref =
-    brand.contact.phoneHref ||
-    `tel:${String(brand.contact.phone || "").replace(/\s/g, "")}`;
   const whatsappHref =
     brand.contact.whatsappUrl ||
     brand.social.whatsapp ||
@@ -253,13 +250,6 @@ const Footer = () => {
               </button>
             </form>
             <ul className="mt-5 space-y-2 text-sm text-white/55">
-              {brand.contact.phone ? (
-                <li>
-                  <a href={phoneHref} className="inline-flex items-center gap-2 hover:text-white">
-                    <FaPhoneAlt size={11} /> {brand.contact.phone}
-                  </a>
-                </li>
-              ) : null}
               {brand.contact.email ? (
                 <li>
                   <a href={mailHref} className="inline-flex items-center gap-2 hover:text-white break-all">

@@ -73,6 +73,8 @@ const brand = {
       "Established in 2015, Zayn Leathers is a manufacturer-direct brand dedicated to handcrafted genuine leather jackets for men and women. Exceptional jackets should be defined by craftsmanship, not excessive markups.",
     storyBody:
       "Each jacket is handcrafted from carefully selected genuine leather, combining timeless design, comfort, and lasting durability. From leather selection to the final inspection, we oversee every stage of production. Every jacket is checked again before it is dispatched.",
+    legalLine:
+      "Zayn Leather is a brand operated by JAINUDDIN LEATHER WORKS, a GST-registered business based in Mumbai, Maharashtra, India.",
     founderName: "Zayn Leathers",
     founderNote:
       "Exceptional leather jackets should be defined by craftsmanship, not excessive markups.",
